@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://www.nicepng.com/png/detail/437-4376923_sailor-moon-sailormoon-anime-png-sailor-moon.png" width="250">
+</p>
+
 # Anime Tracker — Frontend
 
 Aplicación web para el seguimiento y reseñas de anime.
