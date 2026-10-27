@@ -380,7 +380,11 @@ export default function App() {
               <div className="max-h-48 overflow-y-auto flex flex-col gap-2">
                 {animeReviews.map((r) => {
                   const autor = r.usuario_id || {};
-                  const esAdmin = autor.rol === 'ADMIN' || (user?.rol === 'ADMIN' && (autor._id === user?.id || autor.nombre === user?.name));
+                  const esAdmin = autor.rol === 'ADMIN' 
+                    || autor.nombre === 'Administrador' 
+                    || autor.nombre?.toLowerCase().includes('admin')
+                    || (user?.rol === 'ADMIN' && (autor._id === user?.id || autor.nombre === user?.name));
+
                   const avatarSrc = (autor._id === user?.id && user?.avatar) ? user.avatar : autor.avatar;
 
                   return (
@@ -388,7 +392,7 @@ export default function App() {
                       key={r._id}
                       className={`p-3 rounded-xl text-xs transition-all flex flex-col gap-1.5 ${
                         esAdmin
-                          ? 'border-2 border-amber-400/70 bg-gradient-to-r from-amber-950/25 via-[#181512] to-[#121422] shadow-md shadow-amber-950/20'
+                          ? 'border-2 border-amber-400/80 bg-gradient-to-r from-amber-950/25 via-[#181512] to-[#121422] shadow-md shadow-amber-950/20'
                           : 'border border-[#1e2338] bg-[#090a10]'
                       }`}
                     >
