@@ -7,11 +7,12 @@ import LibraryView from './views/LibraryView';
 import ReviewsView from './views/ReviewsView';
 import ProfileView from './views/ProfileView';
 import AdminView from './views/AdminView';
+import NotFoundView from './views/NotFoundView';
 
 import { kirokuApi } from './services/api';
 import { Star, Plus, Check, X } from 'lucide-react';
 
-// Obtener mapa inicial de biblioteca desde localStorage para cero delay al refrescar
+// Obtener mapa inicial de biblioteca desde localStorage
 const getInitialLibraryMap = () => {
   try {
     const cached = localStorage.getItem('kiroku_library_ids');
@@ -21,8 +22,25 @@ const getInitialLibraryMap = () => {
   }
 };
 
+// Resolver ruta URL a módulo activo o 404
+const resolvePathToNav = (pathname = '/') => {
+  const clean = pathname.replace(/\/+$/, '') || '/';
+  if (clean === '/' || clean === '/catalogo') return 'catalogo';
+  if (clean === '/dashboard') return 'dashboard';
+  if (clean === '/biblioteca') return 'biblioteca';
+  if (clean === '/resenas') return 'resenas';
+  if (clean === '/perfil') return 'perfil';
+  if (clean === '/admin') return 'admin';
+  return '404'; // Cualquier ruta que no exista va a 404
+};
+
 export default function App() {
-  const [activeNav, setActiveNav] = useState('catalogo');
+  const [currentPath, setCurrentPath] = useState(
+    typeof window !== 'undefined' ? window.location.pathname : '/'
+  );
+
+  const activeNav = resolvePathToNav(currentPath);
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(
     typeof window !== 'undefined' ? window.innerWidth >= 1024 : true
   );
@@ -35,7 +53,6 @@ export default function App() {
     email: '',
   });
 
-  // Estado único y centralizado de los animes en biblioteca
   const [libraryMap, setLibraryMap] = useState(getInitialLibraryMap);
   const [selectedAnime, setSelectedAnime] = useState(null);
   const [animeReviews, setAnimeReviews] = useState([]);
@@ -47,7 +64,31 @@ export default function App() {
     setTimeout(() => setToastMessage(''), 3500);
   };
 
-  // Cargar seguimientos reales desde la base de datos y persistir en localStorage
+  // Manejar cambio de panel actualizando la URL en la barra de navegación del navegador
+  const handleNavChange = (navId) => {
+    const routeMap = {
+      catalogo: '/catalogo',
+      dashboard: '/dashboard',
+      biblioteca: '/biblioteca',
+      resenas: '/resenas',
+      perfil: '/perfil',
+      admin: '/admin',
+    };
+    const targetUrl = routeMap[navId] || '/catalogo';
+    window.history.pushState(null, '', targetUrl);
+    setCurrentPath(targetUrl);
+  };
+
+  // Escuchar navegación del navegador (adelante / atrás)
+  useEffect(() => {
+    const handlePopState = () => {
+      setCurrentPath(window.location.pathname);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  // Cargar seguimientos reales desde la base de datos
   const cargarBiblioteca = async () => {
     const token = localStorage.getItem('kiroku_token');
     if (!token) {
@@ -115,7 +156,7 @@ export default function App() {
     });
     setLibraryMap({});
     showToast('Sesión cerrada correctamente.');
-    setActiveNav('catalogo');
+    handleNavChange('catalogo');
   };
 
   // Open anime detail modal
@@ -134,7 +175,7 @@ export default function App() {
     }
   };
 
-  // Agregar anime a la biblioteca de forma centralizada
+  // Agregar anime a la biblioteca
   const handleAddToLibrary = async (animeId, titulo = 'Anime') => {
     const token = localStorage.getItem('kiroku_token');
     if (!token) {
@@ -174,7 +215,7 @@ export default function App() {
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
         activeNav={activeNav}
-        onNavChange={(nav) => setActiveNav(nav)}
+        onNavChange={handleNavChange}
         user={user}
         onLogout={handleLogout}
       />
@@ -184,7 +225,7 @@ export default function App() {
         <Navbar
           isSidebarOpen={isSidebarOpen}
           onToggleSidebar={() => setIsSidebarOpen(prev => !prev)}
-          onNavChange={(nav) => setActiveNav(nav)}
+          onNavChange={handleNavChange}
         />
 
         <main className="flex-1 px-4 sm:px-6 md:px-8 py-5 md:py-7 flex flex-col max-w-7xl w-full mx-auto">
@@ -204,7 +245,7 @@ export default function App() {
           {activeNav === 'biblioteca' && (
             <LibraryView
               onShowToast={showToast}
-              onOpenReviewModal={() => setActiveNav('resenas')}
+              onOpenReviewModal={() => handleNavChange('resenas')}
             />
           )}
 
@@ -229,6 +270,14 @@ export default function App() {
 
           {activeNav === 'admin' && (
             <AdminView onShowToast={showToast} />
+          )}
+
+          {/* RUTA NO VÁLIDA (404) */}
+          {activeNav === '404' && (
+            <NotFoundView
+              pathname={currentPath}
+              onGoHome={() => handleNavChange('catalogo')}
+            />
           )}
         </main>
       </div>
