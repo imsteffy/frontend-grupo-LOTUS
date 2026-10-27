@@ -12,7 +12,6 @@ import NotFoundView from './views/NotFoundView';
 import { kirokuApi } from './services/api';
 import { Star, Plus, Check, X } from 'lucide-react';
 
-// Obtener mapa inicial de biblioteca desde localStorage
 const getInitialLibraryMap = () => {
   try {
     const cached = localStorage.getItem('kiroku_library_ids');
@@ -22,7 +21,6 @@ const getInitialLibraryMap = () => {
   }
 };
 
-// Resolver ruta URL a módulo activo o 404
 const resolvePathToNav = (pathname = '/') => {
   const clean = pathname.replace(/\/+$/, '') || '/';
   if (clean === '/' || clean === '/catalogo') return 'catalogo';
@@ -31,7 +29,7 @@ const resolvePathToNav = (pathname = '/') => {
   if (clean === '/resenas') return 'resenas';
   if (clean === '/perfil') return 'perfil';
   if (clean === '/admin') return 'admin';
-  return '404'; // Cualquier ruta que no exista va a 404
+  return '404';
 };
 
 export default function App() {
@@ -64,7 +62,6 @@ export default function App() {
     setTimeout(() => setToastMessage(''), 3500);
   };
 
-  // Manejar cambio de panel actualizando la URL en la barra de navegación del navegador
   const handleNavChange = (navId) => {
     const routeMap = {
       catalogo: '/catalogo',
@@ -79,7 +76,6 @@ export default function App() {
     setCurrentPath(targetUrl);
   };
 
-  // Escuchar navegación del navegador (adelante / atrás)
   useEffect(() => {
     const handlePopState = () => {
       setCurrentPath(window.location.pathname);
@@ -88,7 +84,6 @@ export default function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // Cargar seguimientos reales desde la base de datos
   const cargarBiblioteca = async () => {
     const token = localStorage.getItem('kiroku_token');
     if (!token) {
@@ -112,7 +107,6 @@ export default function App() {
     }
   };
 
-  // Check stored session on mount
   useEffect(() => {
     const token = localStorage.getItem('kiroku_token');
     if (token) {
@@ -159,7 +153,6 @@ export default function App() {
     handleNavChange('catalogo');
   };
 
-  // Open anime detail modal
   const handleOpenDetail = async (anime) => {
     setSelectedAnime(anime);
     setLoadingDetail(true);
@@ -175,7 +168,6 @@ export default function App() {
     }
   };
 
-  // Agregar anime a la biblioteca
   const handleAddToLibrary = async (animeId, titulo = 'Anime') => {
     const token = localStorage.getItem('kiroku_token');
     if (!token) {
@@ -230,7 +222,11 @@ export default function App() {
 
         <main className="flex-1 px-4 sm:px-6 md:px-8 py-5 md:py-7 flex flex-col max-w-7xl w-full mx-auto">
           {activeNav === 'dashboard' && (
-            <DashboardView user={user} onShowToast={showToast} />
+            <DashboardView
+              user={user}
+              onShowToast={showToast}
+              onOpenDetail={handleOpenDetail}
+            />
           )}
 
           {activeNav === 'catalogo' && (
@@ -272,7 +268,6 @@ export default function App() {
             <AdminView onShowToast={showToast} />
           )}
 
-          {/* RUTA NO VÁLIDA (404) */}
           {activeNav === '404' && (
             <NotFoundView
               pathname={currentPath}
