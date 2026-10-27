@@ -247,10 +247,13 @@ export default function ReviewsView({ onShowToast, user }) {
               const esMiResena = token && (autor._id === user?.id || autor.nombre === user?.name || user?.rol === 'ADMIN');
               const isEditingThis = editingReviewId === rev._id;
 
-              // Destacar en dorado si la reseña fue hecha por un ADMIN
-              const esAdmin = autor.rol === 'ADMIN' || (user?.rol === 'ADMIN' && (autor._id === user?.id || autor.nombre === user?.name));
+              // Comprueba rol ADMIN, o si el autor es "Administrador", o si el usuario actual es ADMIN
+              const esAdmin = autor.rol === 'ADMIN' 
+                || autor.nombre === 'Administrador' 
+                || autor.nombre?.toLowerCase().includes('admin')
+                || (user?.rol === 'ADMIN' && (autor._id === user?.id || autor.nombre === user?.name));
 
-              // Obtener avatar del usuario (guardado en BD o en caché local si es mi reseña)
+              // Avatar guardado del autor (o mi propio avatar si soy yo el autor y lo acabo de cambiar)
               const avatarSrc = (esMiResena && user?.avatar) ? user.avatar : autor.avatar;
 
               return (
@@ -258,18 +261,18 @@ export default function ReviewsView({ onShowToast, user }) {
                   key={rev._id}
                   className={`p-4 rounded-2xl transition-all flex flex-col justify-between gap-3 ${
                     esAdmin
-                      ? 'border-2 border-amber-400/70 bg-gradient-to-r from-amber-950/25 via-[#181512] to-[#121422] shadow-lg shadow-amber-950/20'
+                      ? 'border-2 border-amber-400/80 bg-gradient-to-r from-amber-950/30 via-[#181512] to-[#121422] shadow-lg shadow-amber-950/30'
                       : 'border border-[#21263d] bg-[#121422]'
                   }`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      {/* Avatar del autor: si tiene imagen la muestra en todas las áreas */}
+                      {/* Avatar del autor: si tiene imagen la muestra */}
                       {avatarSrc ? (
                         <img
                           src={avatarSrc}
                           alt={autor.nombre || 'Avatar'}
-                          className={`w-9 h-9 rounded-full object-cover shadow-md ${
+                          className={`w-10 h-10 rounded-full object-cover shadow-md ${
                             esAdmin ? 'border-2 border-amber-400 ring-2 ring-amber-400/20' : 'border border-purple-500/40'
                           }`}
                           onError={(e) => {
@@ -278,7 +281,7 @@ export default function ReviewsView({ onShowToast, user }) {
                         />
                       ) : (
                         <div
-                          className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs ${
+                          className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs ${
                             esAdmin
                               ? 'bg-amber-400 text-slate-950 shadow-md shadow-amber-400/30'
                               : 'bg-purple-900/60 border border-purple-500/40 text-purple-200'
@@ -293,7 +296,7 @@ export default function ReviewsView({ onShowToast, user }) {
                           <h4 className="text-xs font-bold text-white">{autor.nombre || 'Usuario'}</h4>
                           {/* Badge de ADMIN dorado destacado */}
                           {esAdmin && (
-                            <span className="px-2 py-0.2 rounded-md bg-amber-400/20 text-amber-300 border border-amber-400/50 text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
+                            <span className="px-2 py-0.5 rounded-md bg-amber-400/20 text-amber-300 border border-amber-400/50 text-[10px] font-black uppercase tracking-wider flex items-center gap-1 shadow-sm">
                               <Crown className="w-2.5 h-2.5 text-amber-400" />
                               <span>Admin</span>
                             </span>
@@ -308,7 +311,7 @@ export default function ReviewsView({ onShowToast, user }) {
                     <div className="flex items-center gap-2">
                       <div className={`px-2 py-0.5 rounded-md text-xs font-bold ${
                         esAdmin
-                          ? 'bg-amber-400/20 border border-amber-400/40 text-amber-300'
+                          ? 'bg-amber-400/20 border border-amber-400/50 text-amber-300 font-extrabold'
                           : 'bg-[#252818] border border-[#484e27] text-lime-400'
                       }`}>
                         {rev.calificacion} / 10 ★
