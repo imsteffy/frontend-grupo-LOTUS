@@ -1,15 +1,16 @@
 import React from 'react';
 import { ArrowLeft } from 'lucide-react';
+import notFoundImg from '../assets/404-illustration.png';
 
 export default function NotFoundView({ pathname = '', onGoHome }) {
   return (
     <div className="flex-1 flex flex-col items-center justify-center py-12 px-4 text-center">
       <div className="p-8 sm:p-12 rounded-3xl bg-[#121422] border border-[#21263d] max-w-lg w-full flex flex-col items-center gap-6 shadow-2xl">
-        {/* Ilustración 404 del gato */}
+        {/* Ilustración 404 del gato importada como asset estático de Vite */}
         <div className="w-full flex justify-center">
           <img
-            src="/404-illustration.png"
-            alt="Ilustración 404"
+            src={notFoundImg}
+            alt="Ilustración 404 - Página no encontrada"
             className="w-64 sm:w-80 object-contain drop-shadow-lg"
           />
         </div>
