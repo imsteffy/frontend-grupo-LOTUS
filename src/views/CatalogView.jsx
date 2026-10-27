@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Search, Filter, Star, Plus, Check, ChevronLeft, ChevronRight, ExternalLink, RefreshCw, AlertTriangle } from 'lucide-react';
 import { kirokuApi, generosService } from '../services/api';
 
-export default function CatalogView({ onShowToast, onOpenDetail }) {
+export default function CatalogView({ libraryMap = {}, onAddToLibrary, onShowToast, onOpenDetail }) {
   const [animes, setAnimes] = useState([]);
   const [total, setTotal] = useState(0);
   const [pagina, setPagina] = useState(1);
@@ -21,31 +21,6 @@ export default function CatalogView({ onShowToast, onOpenDetail }) {
   const [listaGeneros, setListaGeneros] = useState([]);
   const [cargandoGeneros, setCargandoGeneros] = useState(false);
 
-  // Mapeo persistente de animes que ya están en la biblioteca del usuario
-  const [addedIds, setAddedIds] = useState({});
-
-  // Cargar seguimientos del usuario para persistir el estado "En biblioteca" al refrescar
-  const cargarSeguimientosUsuario = async () => {
-    const token = localStorage.getItem('kiroku_token');
-    if (!token) {
-      setAddedIds({});
-      return;
-    }
-    try {
-      const res = await kirokuApi.getSeguimientos();
-      if (Array.isArray(res)) {
-        const mapa = {};
-        res.forEach((s) => {
-          const aId = s.anime_id?._id || s.anime_id;
-          if (aId) mapa[String(aId)] = true;
-        });
-        setAddedIds(mapa);
-      }
-    } catch (err) {
-      console.warn('Error al verificar biblioteca en catálogo:', err.message);
-    }
-  };
-
   // Cargar géneros dinámicos (GET /api/generos)
   const cargarGeneros = async () => {
     setCargandoGeneros(true);
@@ -63,7 +38,6 @@ export default function CatalogView({ onShowToast, onOpenDetail }) {
 
   useEffect(() => {
     cargarGeneros();
-    cargarSeguimientosUsuario();
   }, []);
 
   // Cargar animes con filtros combinados (GET /api/animes)
@@ -101,26 +75,6 @@ export default function CatalogView({ onShowToast, onOpenDetail }) {
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     cargarCatalogo(1);
-  };
-
-  const handleAdd = async (anime, estadoInicial = 'Viendo') => {
-    const token = localStorage.getItem('kiroku_token');
-    if (!token) {
-      if (onShowToast) onShowToast('Debes iniciar sesión para agregar a tu biblioteca.');
-      return;
-    }
-
-    try {
-      await kirokuApi.crearSeguimiento(anime._id, estadoInicial, 0);
-      setAddedIds(prev => ({ ...prev, [String(anime._id)]: true }));
-      if (onShowToast) onShowToast(`"${anime.titulo}" agregado a tu biblioteca`);
-    } catch (err) {
-      if (onShowToast) onShowToast(`Aviso: ${err.message}`);
-      // Si ya existía en la BD, nos aseguramos de marcarlo
-      if (err.message && err.message.toLowerCase().includes('ya tenés')) {
-        setAddedIds(prev => ({ ...prev, [String(anime._id)]: true }));
-      }
-    }
   };
 
   return (
@@ -246,7 +200,9 @@ export default function CatalogView({ onShowToast, onOpenDetail }) {
       {/* Anime Cards Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
         {animes.map((anime) => {
-          const isAdded = !!addedIds[String(anime._id)];
+          // Comprueba tanto con anime._id como con String(anime._id)
+          const isAdded = !!libraryMap[String(anime._id)];
+
           return (
             <div
               key={anime._id}
@@ -305,7 +261,7 @@ export default function CatalogView({ onShowToast, onOpenDetail }) {
               {/* Action Buttons */}
               <div className="flex flex-col gap-1.5 pt-2 border-t border-[#1b1f33]">
                 <button
-                  onClick={() => !isAdded && handleAdd(anime, 'Viendo')}
+                  onClick={() => !isAdded && onAddToLibrary && onAddToLibrary(anime._id, anime.titulo)}
                   disabled={isAdded}
                   className={`w-full py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors ${
                     isAdded

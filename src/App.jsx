@@ -11,6 +11,16 @@ import AdminView from './views/AdminView';
 import { kirokuApi } from './services/api';
 import { Star, Plus, Check, X } from 'lucide-react';
 
+// Obtener mapa inicial de biblioteca desde localStorage para cero delay al refrescar
+const getInitialLibraryMap = () => {
+  try {
+    const cached = localStorage.getItem('kiroku_library_ids');
+    return cached ? JSON.parse(cached) : {};
+  } catch {
+    return {};
+  }
+};
+
 export default function App() {
   const [activeNav, setActiveNav] = useState('catalogo');
   const [isSidebarOpen, setIsSidebarOpen] = useState(
@@ -25,7 +35,8 @@ export default function App() {
     email: '',
   });
 
-  const [libraryMap, setLibraryMap] = useState({});
+  // Estado único y centralizado de los animes en biblioteca
+  const [libraryMap, setLibraryMap] = useState(getInitialLibraryMap);
   const [selectedAnime, setSelectedAnime] = useState(null);
   const [animeReviews, setAnimeReviews] = useState([]);
   const [loadingDetail, setLoadingDetail] = useState(false);
@@ -36,11 +47,12 @@ export default function App() {
     setTimeout(() => setToastMessage(''), 3500);
   };
 
-  // Cargar seguimientos para saber qué animes ya tiene el usuario
+  // Cargar seguimientos reales desde la base de datos y persistir en localStorage
   const cargarBiblioteca = async () => {
     const token = localStorage.getItem('kiroku_token');
     if (!token) {
       setLibraryMap({});
+      localStorage.removeItem('kiroku_library_ids');
       return;
     }
     try {
@@ -52,9 +64,10 @@ export default function App() {
           if (aId) mapa[String(aId)] = true;
         });
         setLibraryMap(mapa);
+        localStorage.setItem('kiroku_library_ids', JSON.stringify(mapa));
       }
     } catch (err) {
-      console.warn('Error al cargar seguimientos en App:', err.message);
+      console.warn('Error al cargar biblioteca:', err.message);
     }
   };
 
@@ -92,6 +105,7 @@ export default function App() {
 
   const handleLogout = () => {
     localStorage.removeItem('kiroku_token');
+    localStorage.removeItem('kiroku_library_ids');
     setUser({
       id: null,
       name: 'Invitado',
@@ -120,8 +134,8 @@ export default function App() {
     }
   };
 
-  // Add anime to library
-  const handleAddToLibrary = async (animeId) => {
+  // Agregar anime a la biblioteca de forma centralizada
+  const handleAddToLibrary = async (animeId, titulo = 'Anime') => {
     const token = localStorage.getItem('kiroku_token');
     if (!token) {
       showToast('Debes iniciar sesión para agregar animes a tu biblioteca.');
@@ -130,13 +144,23 @@ export default function App() {
 
     try {
       await kirokuApi.crearSeguimiento(animeId, 'Viendo', 0);
-      setLibraryMap(prev => ({ ...prev, [String(animeId)]: true }));
-      showToast('Anime agregado a tu biblioteca');
-      setSelectedAnime(null);
+      setLibraryMap((prev) => {
+        const nuevo = { ...prev, [String(animeId)]: true };
+        localStorage.setItem('kiroku_library_ids', JSON.stringify(nuevo));
+        return nuevo;
+      });
+      showToast(`"${titulo}" agregado a tu biblioteca`);
+      if (selectedAnime && selectedAnime._id === animeId) {
+        setSelectedAnime(null);
+      }
     } catch (err) {
       showToast(`Aviso: ${err.message}`);
       if (err.message && err.message.toLowerCase().includes('ya tenés')) {
-        setLibraryMap(prev => ({ ...prev, [String(animeId)]: true }));
+        setLibraryMap((prev) => {
+          const nuevo = { ...prev, [String(animeId)]: true };
+          localStorage.setItem('kiroku_library_ids', JSON.stringify(nuevo));
+          return nuevo;
+        });
       }
     }
   };
@@ -170,6 +194,8 @@ export default function App() {
 
           {activeNav === 'catalogo' && (
             <CatalogView
+              libraryMap={libraryMap}
+              onAddToLibrary={handleAddToLibrary}
               onShowToast={showToast}
               onOpenDetail={handleOpenDetail}
             />
@@ -316,7 +342,7 @@ export default function App() {
             <div className="flex items-center gap-3 pt-3 border-t border-[#1b1f33]">
               <button
                 disabled={isAlreadyInLibrary}
-                onClick={() => !isAlreadyInLibrary && handleAddToLibrary(selectedAnime._id)}
+                onClick={() => !isAlreadyInLibrary && handleAddToLibrary(selectedAnime._id, selectedAnime.titulo)}
                 className={`flex-1 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-colors ${
                   isAlreadyInLibrary
                     ? 'bg-lime-400 text-slate-950 font-bold opacity-90 cursor-default'
