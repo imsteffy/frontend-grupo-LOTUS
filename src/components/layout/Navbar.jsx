@@ -1,7 +1,7 @@
 import React from 'react';
 import { Menu } from 'lucide-react';
 
-export default function Navbar({ isSidebarOpen, onToggleSidebar, onNavChange }) {
+export default function Navbar({ isSidebarOpen, onToggleSidebar, onNavChange, user }) {
   return (
     <header className="h-16 border-b border-[#181a27] px-6 md:px-8 flex items-center justify-between bg-[#090a10]/80 backdrop-blur-md sticky top-0 z-40">
       <div className="flex items-center gap-4">
@@ -33,7 +33,23 @@ export default function Navbar({ isSidebarOpen, onToggleSidebar, onNavChange }) 
         )}
       </div>
 
-      <div className="flex items-center gap-3"></div>
+      {/* Right: Avatar del usuario si tiene foto guardada */}
+      <div className="flex items-center gap-3">
+        {user?.avatar && (
+          <div
+            onClick={() => onNavChange('perfil')}
+            className="w-8 h-8 rounded-full overflow-hidden border border-purple-500/50 cursor-pointer shadow-md hover:scale-105 transition-transform"
+            title={`Perfil de ${user.name || 'usuario'}`}
+          >
+            <img
+              src={user.avatar}
+              alt={user.name || 'Avatar'}
+              className="w-full h-full object-cover"
+              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+            />
+          </div>
+        )}
+      </div>
     </header>
   );
 }

@@ -10,7 +10,7 @@ import AdminView from './views/AdminView';
 import NotFoundView from './views/NotFoundView';
 
 import { kirokuApi } from './services/api';
-import { Star, Plus, Check, X } from 'lucide-react';
+import { Star, Plus, Check, X, Crown } from 'lucide-react';
 
 const getInitialLibraryMap = () => {
   try {
@@ -49,6 +49,7 @@ export default function App() {
     initials: 'IN',
     rol: 'Sin login',
     email: '',
+    avatar: '',
   });
 
   const [libraryMap, setLibraryMap] = useState(getInitialLibraryMap);
@@ -109,22 +110,29 @@ export default function App() {
 
   useEffect(() => {
     const token = localStorage.getItem('kiroku_token');
+    const cachedAvatar = localStorage.getItem('kiroku_user_avatar') || '';
     if (token) {
       kirokuApi.getMiPerfil()
         .then((res) => {
           if (res?.usuario) {
             const u = res.usuario;
+            const userAvatar = u.avatar || cachedAvatar;
             setUser({
               id: u._id,
               name: u.nombre,
               initials: u.nombre.substring(0, 2).toUpperCase(),
               rol: u.rol || 'STD',
               email: u.email,
+              avatar: userAvatar,
             });
+            if (userAvatar) {
+              localStorage.setItem('kiroku_user_avatar', userAvatar);
+            }
           }
         })
         .catch(() => {
           localStorage.removeItem('kiroku_token');
+          localStorage.removeItem('kiroku_user_avatar');
         });
       cargarBiblioteca();
     }
@@ -141,12 +149,14 @@ export default function App() {
   const handleLogout = () => {
     localStorage.removeItem('kiroku_token');
     localStorage.removeItem('kiroku_library_ids');
+    localStorage.removeItem('kiroku_user_avatar');
     setUser({
       id: null,
       name: 'Invitado',
       initials: 'IN',
       rol: 'Sin login',
       email: '',
+      avatar: '',
     });
     setLibraryMap({});
     showToast('Sesión cerrada correctamente.');
@@ -218,6 +228,7 @@ export default function App() {
           isSidebarOpen={isSidebarOpen}
           onToggleSidebar={() => setIsSidebarOpen(prev => !prev)}
           onNavChange={handleNavChange}
+          user={user}
         />
 
         <main className="flex-1 px-4 sm:px-6 md:px-8 py-5 md:py-7 flex flex-col max-w-7xl w-full mx-auto">
@@ -257,6 +268,9 @@ export default function App() {
               user={user}
               onUserUpdate={(updated) => {
                 setUser(prev => ({ ...prev, ...updated }));
+                if (updated.avatar) {
+                  localStorage.setItem('kiroku_user_avatar', updated.avatar);
+                }
                 cargarBiblioteca();
               }}
               onShowToast={showToast}
@@ -356,26 +370,70 @@ export default function App() {
               </p>
             </div>
 
-            {/* Reviews list */}
+            {/* Reviews list con destaque en dorado si el autor es Admin */}
             <div className="flex flex-col gap-2 pt-2 border-t border-[#1b1f33]">
               <span className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
                 <span>Reseñas de la Comunidad</span>
                 <span className="text-[10px] text-purple-400 font-semibold">{animeReviews.length} registradas</span>
               </span>
 
-              <div className="max-h-40 overflow-y-auto flex flex-col gap-2">
-                {animeReviews.map((r) => (
-                  <div key={r._id} className="p-2.5 rounded-xl bg-[#090a10] border border-[#1e2338] text-xs">
-                    <div className="flex items-center justify-between text-[11px] mb-1">
-                      <span className="font-bold text-white">{r.usuario_id?.nombre || 'Usuario'}</span>
-                      <span className="font-bold text-amber-400">{r.calificacion} / 10 ★</span>
+              <div className="max-h-48 overflow-y-auto flex flex-col gap-2">
+                {animeReviews.map((r) => {
+                  const autor = r.usuario_id || {};
+                  const esAdmin = autor.rol === 'ADMIN' || (user?.rol === 'ADMIN' && (autor._id === user?.id || autor.nombre === user?.name));
+                  const avatarSrc = (autor._id === user?.id && user?.avatar) ? user.avatar : autor.avatar;
+
+                  return (
+                    <div
+                      key={r._id}
+                      className={`p-3 rounded-xl text-xs transition-all flex flex-col gap-1.5 ${
+                        esAdmin
+                          ? 'border-2 border-amber-400/70 bg-gradient-to-r from-amber-950/25 via-[#181512] to-[#121422] shadow-md shadow-amber-950/20'
+                          : 'border border-[#1e2338] bg-[#090a10]'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between text-[11px]">
+                        <div className="flex items-center gap-2">
+                          {avatarSrc ? (
+                            <img
+                              src={avatarSrc}
+                              alt={autor.nombre || 'Avatar'}
+                              className={`w-6 h-6 rounded-full object-cover ${
+                                esAdmin ? 'border-2 border-amber-400' : 'border border-purple-500/40'
+                              }`}
+                              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                            />
+                          ) : (
+                            <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px] ${
+                              esAdmin ? 'bg-amber-400 text-slate-950 shadow-sm' : 'bg-purple-900/60 text-purple-200'
+                            }`}>
+                              {(autor.nombre || 'U').substring(0, 2).toUpperCase()}
+                            </div>
+                          )}
+
+                          <span className="font-bold text-white flex items-center gap-1.5">
+                            <span>{autor.nombre || 'Usuario'}</span>
+                            {esAdmin && (
+                              <span className="px-1.5 py-0.2 rounded bg-amber-400/20 text-amber-300 border border-amber-400/50 text-[9px] font-black uppercase flex items-center gap-0.5">
+                                <Crown className="w-2.5 h-2.5 text-amber-400" />
+                                <span>Admin</span>
+                              </span>
+                            )}
+                          </span>
+                        </div>
+                        <span className={`font-bold ${esAdmin ? 'text-amber-300' : 'text-amber-400'}`}>
+                          {r.calificacion} / 10 ★
+                        </span>
+                      </div>
+
+                      <p className="text-slate-300 text-[11px] leading-relaxed">{r.texto}</p>
+                      {r.spoiler && (
+                        <span className="text-[10px] text-rose-400 font-semibold block">⚠️ Contiene spoilers</span>
+                      )}
                     </div>
-                    <p className="text-slate-300 text-[11px]">{r.texto}</p>
-                    {r.spoiler && (
-                      <span className="text-[10px] text-rose-400 font-semibold block mt-1">⚠️ Contiene spoilers</span>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
+
                 {animeReviews.length === 0 && (
                   <p className="text-center text-xs text-slate-500 py-3">No hay reseñas aún para este título.</p>
                 )}
