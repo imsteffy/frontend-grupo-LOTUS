@@ -13,7 +13,6 @@ import { Star, Plus, Check, X } from 'lucide-react';
 
 export default function App() {
   const [activeNav, setActiveNav] = useState('catalogo');
-  // En pantallas grandes (>= 1024px) inicia abierto; en celulares/tablets inicia cerrado
   const [isSidebarOpen, setIsSidebarOpen] = useState(
     typeof window !== 'undefined' ? window.innerWidth >= 1024 : true
   );
@@ -26,6 +25,7 @@ export default function App() {
     email: '',
   });
 
+  const [libraryMap, setLibraryMap] = useState({});
   const [selectedAnime, setSelectedAnime] = useState(null);
   const [animeReviews, setAnimeReviews] = useState([]);
   const [loadingDetail, setLoadingDetail] = useState(false);
@@ -34,6 +34,28 @@ export default function App() {
   const showToast = (msg) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(''), 3500);
+  };
+
+  // Cargar seguimientos para saber qué animes ya tiene el usuario
+  const cargarBiblioteca = async () => {
+    const token = localStorage.getItem('kiroku_token');
+    if (!token) {
+      setLibraryMap({});
+      return;
+    }
+    try {
+      const res = await kirokuApi.getSeguimientos();
+      if (Array.isArray(res)) {
+        const mapa = {};
+        res.forEach((s) => {
+          const aId = s.anime_id?._id || s.anime_id;
+          if (aId) mapa[String(aId)] = true;
+        });
+        setLibraryMap(mapa);
+      }
+    } catch (err) {
+      console.warn('Error al cargar seguimientos en App:', err.message);
+    }
   };
 
   // Check stored session on mount
@@ -56,9 +78,9 @@ export default function App() {
         .catch(() => {
           localStorage.removeItem('kiroku_token');
         });
+      cargarBiblioteca();
     }
 
-    // Auto-ajustar sidebar si la ventana cambia de tamaño
     const handleResize = () => {
       if (window.innerWidth < 1024) {
         setIsSidebarOpen(false);
@@ -77,6 +99,7 @@ export default function App() {
       rol: 'Sin login',
       email: '',
     });
+    setLibraryMap({});
     showToast('Sesión cerrada correctamente.');
     setActiveNav('catalogo');
   };
@@ -107,16 +130,22 @@ export default function App() {
 
     try {
       await kirokuApi.crearSeguimiento(animeId, 'Viendo', 0);
+      setLibraryMap(prev => ({ ...prev, [String(animeId)]: true }));
       showToast('Anime agregado a tu biblioteca');
       setSelectedAnime(null);
     } catch (err) {
       showToast(`Aviso: ${err.message}`);
+      if (err.message && err.message.toLowerCase().includes('ya tenés')) {
+        setLibraryMap(prev => ({ ...prev, [String(animeId)]: true }));
+      }
     }
   };
 
+  const isAlreadyInLibrary = selectedAnime ? !!libraryMap[String(selectedAnime._id)] : false;
+
   return (
     <div className="min-h-screen flex bg-[#08090f] text-slate-100 font-sans selection:bg-purple-600 selection:text-white">
-      {/* Sidebar Navigation (Collapsable y Drawer en móviles) */}
+      {/* Sidebar Navigation */}
       <Sidebar
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
@@ -163,7 +192,10 @@ export default function App() {
           {activeNav === 'perfil' && (
             <ProfileView
               user={user}
-              onUserUpdate={(updated) => setUser(prev => ({ ...prev, ...updated }))}
+              onUserUpdate={(updated) => {
+                setUser(prev => ({ ...prev, ...updated }));
+                cargarBiblioteca();
+              }}
               onShowToast={showToast}
               onLogout={handleLogout}
             />
@@ -175,7 +207,7 @@ export default function App() {
         </main>
       </div>
 
-      {/* Anime Detail Modal (Responsivo con max-h-[90vh] y scroll suave) */}
+      {/* Anime Detail Modal */}
       {selectedAnime && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-sm"
@@ -283,11 +315,16 @@ export default function App() {
             {/* Actions */}
             <div className="flex items-center gap-3 pt-3 border-t border-[#1b1f33]">
               <button
-                onClick={() => handleAddToLibrary(selectedAnime._id)}
-                className="flex-1 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-lg shadow-purple-600/30"
+                disabled={isAlreadyInLibrary}
+                onClick={() => !isAlreadyInLibrary && handleAddToLibrary(selectedAnime._id)}
+                className={`flex-1 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-colors ${
+                  isAlreadyInLibrary
+                    ? 'bg-lime-400 text-slate-950 font-bold opacity-90 cursor-default'
+                    : 'bg-purple-600 hover:bg-purple-500 text-white cursor-pointer shadow-lg shadow-purple-600/30'
+                }`}
               >
-                <Plus className="w-4 h-4" />
-                <span>Añadir a mi Biblioteca</span>
+                {isAlreadyInLibrary ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                <span>{isAlreadyInLibrary ? 'En tu Biblioteca' : 'Añadir a mi Biblioteca'}</span>
               </button>
               <button
                 onClick={() => setSelectedAnime(null)}
