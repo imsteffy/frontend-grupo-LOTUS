@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart3, Clock, CheckCircle, Flame, Star, Trophy, RefreshCw, AlertCircle } from 'lucide-react';
+import { BarChart3, Clock, CheckCircle, Flame, Star, Trophy, RefreshCw } from 'lucide-react';
 import { kirokuApi } from '../services/api';
 
 export default function DashboardView({ user, onShowToast, onOpenDetail }) {
@@ -16,9 +16,25 @@ export default function DashboardView({ user, onShowToast, onOpenDetail }) {
       // 1. Rankings públicos (GET /api/stats/rankings)
       const rankData = await kirokuApi.getRankings().catch(() => null);
       if (rankData) {
+        // Desempate estable por título (A-Z) para que el orden no baile si empatan en puntaje o seguidores
+        const ordenadosMejor = [...(rankData.mejorPuntuados || [])].sort((a, b) => {
+          const notaDiff = (b.calificacionPromedio || 0) - (a.calificacionPromedio || 0);
+          if (notaDiff !== 0) return notaDiff;
+          const resenasDiff = (b.totalResenas || 0) - (a.totalResenas || 0);
+          if (resenasDiff !== 0) return resenasDiff;
+          return (a.titulo || '').localeCompare(b.titulo || '', 'es');
+        });
+
+        const ordenadosSeguidos = [...(rankData.masSeguidos || [])].sort((a, b) => {
+          const segA = a.seguidores ?? a.totalSeguidores ?? 0;
+          const segB = b.seguidores ?? b.totalSeguidores ?? 0;
+          if (segB !== segA) return segB - segA;
+          return (a.titulo || '').localeCompare(b.titulo || '', 'es');
+        });
+
         setRankings({
-          mejorPuntuados: rankData.mejorPuntuados || [],
-          masSeguidos: rankData.masSeguidos || [],
+          mejorPuntuados: ordenadosMejor,
+          masSeguidos: ordenadosSeguidos,
         });
       }
 
@@ -238,9 +254,8 @@ export default function DashboardView({ user, onShowToast, onOpenDetail }) {
                         {a.titulo}
                       </span>
                     </div>
-                    {/* Campo exacto devuelto por stats.controller: a.seguidores */}
                     <span className="text-xs font-bold text-purple-400">
-                      {a.seguidores ?? a.totalSeguidores ?? 0} {a.seguidores === 1 ? 'seguidor' : 'seguidores'}
+                      {a.seguidores ?? 0} {a.seguidores === 1 ? 'seguidor' : 'seguidores'}
                     </span>
                   </div>
                 ))
