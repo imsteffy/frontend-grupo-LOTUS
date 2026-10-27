@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MessageSquare, Star, Send, Trash2, Edit, ShieldAlert, ShieldCheck, Check, X } from 'lucide-react';
+import { MessageSquare, Star, Send, Trash2, Edit, ShieldAlert, ShieldCheck, Crown } from 'lucide-react';
 import { kirokuApi } from '../services/api';
 
 export default function ReviewsView({ onShowToast, user }) {
@@ -247,18 +247,58 @@ export default function ReviewsView({ onShowToast, user }) {
               const esMiResena = token && (autor._id === user?.id || autor.nombre === user?.name || user?.rol === 'ADMIN');
               const isEditingThis = editingReviewId === rev._id;
 
+              // Destacar en dorado si la reseña fue hecha por un ADMIN
+              const esAdmin = autor.rol === 'ADMIN' || (user?.rol === 'ADMIN' && (autor._id === user?.id || autor.nombre === user?.name));
+
+              // Obtener avatar del usuario (guardado en BD o en caché local si es mi reseña)
+              const avatarSrc = (esMiResena && user?.avatar) ? user.avatar : autor.avatar;
+
               return (
                 <div
                   key={rev._id}
-                  className="p-4 rounded-2xl bg-[#121422] border border-[#21263d] flex flex-col justify-between gap-3"
+                  className={`p-4 rounded-2xl transition-all flex flex-col justify-between gap-3 ${
+                    esAdmin
+                      ? 'border-2 border-amber-400/70 bg-gradient-to-r from-amber-950/25 via-[#181512] to-[#121422] shadow-lg shadow-amber-950/20'
+                      : 'border border-[#21263d] bg-[#121422]'
+                  }`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-purple-900/60 border border-purple-500/40 flex items-center justify-center font-bold text-xs text-purple-200">
-                        {(autor.nombre || 'U').substring(0, 2).toUpperCase()}
-                      </div>
+                      {/* Avatar del autor: si tiene imagen la muestra en todas las áreas */}
+                      {avatarSrc ? (
+                        <img
+                          src={avatarSrc}
+                          alt={autor.nombre || 'Avatar'}
+                          className={`w-9 h-9 rounded-full object-cover shadow-md ${
+                            esAdmin ? 'border-2 border-amber-400 ring-2 ring-amber-400/20' : 'border border-purple-500/40'
+                          }`}
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        <div
+                          className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs ${
+                            esAdmin
+                              ? 'bg-amber-400 text-slate-950 shadow-md shadow-amber-400/30'
+                              : 'bg-purple-900/60 border border-purple-500/40 text-purple-200'
+                          }`}
+                        >
+                          {(autor.nombre || 'U').substring(0, 2).toUpperCase()}
+                        </div>
+                      )}
+
                       <div>
-                        <h4 className="text-xs font-bold text-white">{autor.nombre || 'Usuario'}</h4>
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-xs font-bold text-white">{autor.nombre || 'Usuario'}</h4>
+                          {/* Badge de ADMIN dorado destacado */}
+                          {esAdmin && (
+                            <span className="px-2 py-0.2 rounded-md bg-amber-400/20 text-amber-300 border border-amber-400/50 text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
+                              <Crown className="w-2.5 h-2.5 text-amber-400" />
+                              <span>Admin</span>
+                            </span>
+                          )}
+                        </div>
                         <span className="text-[10px] text-slate-500">
                           {new Date(rev.createdAt).toLocaleDateString()}
                         </span>
@@ -266,7 +306,11 @@ export default function ReviewsView({ onShowToast, user }) {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <div className="px-2 py-0.5 rounded-md bg-[#252818] border border-[#484e27] text-xs font-bold text-lime-400">
+                      <div className={`px-2 py-0.5 rounded-md text-xs font-bold ${
+                        esAdmin
+                          ? 'bg-amber-400/20 border border-amber-400/40 text-amber-300'
+                          : 'bg-[#252818] border border-[#484e27] text-lime-400'
+                      }`}>
                         {rev.calificacion} / 10 ★
                       </div>
 
@@ -275,7 +319,7 @@ export default function ReviewsView({ onShowToast, user }) {
                           <button
                             onClick={() => handleStartEdit(rev)}
                             className="p-1 rounded text-slate-400 hover:text-purple-300 transition-colors cursor-pointer"
-                            title="Editar reseña (PUT /api/resenas/:id)"
+                            title="Editar reseña"
                           >
                             <Edit className="w-3.5 h-3.5" />
                           </button>

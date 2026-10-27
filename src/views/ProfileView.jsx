@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, LogIn, UserPlus, Image, Check, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
 import { kirokuApi } from '../services/api';
 
@@ -15,11 +15,18 @@ export default function ProfileView({ user, onUserUpdate, onShowToast }) {
   const [abrirAgregarAvatar, setAbrirAgregarAvatar] = useState(false);
 
   const [editNombre, setEditNombre] = useState(user?.name || '');
-  const [editAvatar, setEditAvatar] = useState('');
+  const [editAvatar, setEditAvatar] = useState(user?.avatar || '');
+  const [avatarImgError, setAvatarImgError] = useState(false);
   const [guardando, setGuardando] = useState(false);
 
   const token = localStorage.getItem('kiroku_token');
   const isLoggedIn = !!token;
+
+  useEffect(() => {
+    setEditNombre(user?.name || '');
+    setEditAvatar(user?.avatar || '');
+    setAvatarImgError(false);
+  }, [user]);
 
   // Handle Login / Register
   const handleAuth = async (e) => {
@@ -33,13 +40,17 @@ export default function ProfileView({ user, onUserUpdate, onShowToast }) {
         if (res?.token) {
           localStorage.setItem('kiroku_token', res.token);
           const u = res.usuario || {};
+          const userAvatar = u.avatar || '';
+          if (userAvatar) {
+            localStorage.setItem('kiroku_user_avatar', userAvatar);
+          }
           onUserUpdate({
             id: u._id,
             name: u.nombre || email.split('@')[0],
             initials: (u.nombre || email).substring(0, 2).toUpperCase(),
             rol: u.rol || 'STD',
             email: u.email || email,
-            avatar: u.avatar || '',
+            avatar: userAvatar,
           });
           if (onShowToast) onShowToast(`¡Bienvenido de vuelta, ${u.nombre || 'usuario'}!`);
         }
@@ -67,7 +78,7 @@ export default function ProfileView({ user, onUserUpdate, onShowToast }) {
         name: editNombre.trim(),
         initials: editNombre.substring(0, 2).toUpperCase(),
       });
-      if (onShowToast) onShowToast('Nombre actualizado.');
+      if (onShowToast) onShowToast('Nombre actualizado correctamente.');
       setAbrirActualizarNombre(false);
     } catch (err) {
       if (onShowToast) onShowToast(`Error: ${err.message}`);
@@ -76,17 +87,20 @@ export default function ProfileView({ user, onUserUpdate, onShowToast }) {
     }
   };
 
-  // Guardar avatar
+  // Guardar avatar y sincronizar en todas las áreas
   const handleSaveAvatar = async (e) => {
     e.preventDefault();
     setGuardando(true);
     try {
-      await kirokuApi.actualizarMiPerfil({ avatar: editAvatar.trim() });
+      const urlAvatar = editAvatar.trim();
+      await kirokuApi.actualizarMiPerfil({ avatar: urlAvatar });
+      localStorage.setItem('kiroku_user_avatar', urlAvatar);
+      setAvatarImgError(false);
       onUserUpdate({
         ...user,
-        avatar: editAvatar.trim(),
+        avatar: urlAvatar,
       });
-      if (onShowToast) onShowToast('Avatar actualizado.');
+      if (onShowToast) onShowToast('Avatar guardado y actualizado en toda la plataforma.');
       setAbrirAgregarAvatar(false);
     } catch (err) {
       if (onShowToast) onShowToast(`Error: ${err.message}`);
@@ -106,7 +120,7 @@ export default function ProfileView({ user, onUserUpdate, onShowToast }) {
         </div>
 
         {!isLoggedIn ? (
-          /* LOGIN / REGISTRO CENTRADO */
+          /* LOGIN / REGISTRO */
           <div className="p-6 sm:p-8 rounded-3xl bg-[#121422] border border-[#21263d] flex flex-col gap-5 shadow-xl">
             <div className="flex items-center justify-center gap-6 border-b border-[#1b1f33] pb-3">
               <button
@@ -184,11 +198,11 @@ export default function ProfileView({ user, onUserUpdate, onShowToast }) {
             </form>
           </div>
         ) : (
-          /* USUARIO LOGUEADO CENTRADO */
+          /* USUARIO LOGUEADO */
           <div className="flex flex-col gap-6">
-            {/* Tarjeta de perfil centrada y equilibrada */}
+            {/* Tarjeta de perfil centrada con avatar persistente */}
             <div className="p-6 sm:p-8 rounded-3xl bg-[#121422] border border-[#21263d] flex flex-col items-center text-center shadow-xl relative">
-              {/* Badge Admin discreto en la esquina superior derecha */}
+              {/* Badge Admin discreto solo si es ADMIN */}
               {user?.rol === 'ADMIN' && (
                 <div className="absolute top-5 right-5">
                   <span className="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-amber-400/20 text-amber-400 border border-amber-400/40">
@@ -197,16 +211,14 @@ export default function ProfileView({ user, onUserUpdate, onShowToast }) {
                 </div>
               )}
 
-              {/* Avatar centrado */}
+              {/* Avatar: si tiene URL válida muestra la imagen, si no muestra iniciales */}
               <div className="w-20 h-20 rounded-full bg-purple-900/80 border-2 border-purple-500/40 flex items-center justify-center text-xl font-bold text-purple-200 overflow-hidden shadow-lg">
-                {user?.avatar ? (
+                {user?.avatar && !avatarImgError ? (
                   <img
                     src={user.avatar}
-                    alt={user?.name}
+                    alt={user?.name || 'Avatar'}
                     className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                    }}
+                    onError={() => setAvatarImgError(true)}
                   />
                 ) : (
                   <span>{user?.initials || 'U'}</span>
@@ -216,11 +228,11 @@ export default function ProfileView({ user, onUserUpdate, onShowToast }) {
               {/* Nombre y correo centrados */}
               <div className="mt-4">
                 <h2 className="text-xl font-bold text-white">{user?.name}</h2>
-                <p className="text-xs text-slate-400 mt-1">{user?.email}</p>
+                <p className="text-xs text-slate-400 mt-0.5">{user?.email}</p>
               </div>
             </div>
 
-            {/* Sección de Opciones */}
+            {/* Opciones */}
             <div className="flex flex-col gap-3">
               <span className="text-xs font-semibold text-slate-400 text-center">Opciones de Cuenta</span>
 
@@ -274,7 +286,7 @@ export default function ProfileView({ user, onUserUpdate, onShowToast }) {
                 )}
               </div>
 
-              {/* Opción 2: Agregar Avatar */}
+              {/* Opción 2: Agregar o Cambiar Avatar */}
               <div className="rounded-2xl bg-[#121422] border border-[#21263d] overflow-hidden transition-all shadow-md">
                 <button
                   type="button"
@@ -286,7 +298,7 @@ export default function ProfileView({ user, onUserUpdate, onShowToast }) {
                 >
                   <div className="flex items-center gap-3">
                     <Image className="w-4 h-4 text-purple-400" />
-                    <span>Agregar avatar</span>
+                    <span>{user?.avatar ? 'Cambiar imagen de avatar' : 'Agregar avatar'}</span>
                   </div>
                   {abrirAgregarAvatar ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
                 </button>
@@ -294,7 +306,7 @@ export default function ProfileView({ user, onUserUpdate, onShowToast }) {
                 {abrirAgregarAvatar && (
                   <form onSubmit={handleSaveAvatar} className="p-4 pt-0 border-t border-[#1b1f33] flex flex-col gap-3 mt-3">
                     <div className="flex flex-col gap-1.5 text-left">
-                      <label className="text-[11px] text-slate-400">URL de la imagen</label>
+                      <label className="text-[11px] text-slate-400">URL de la imagen (debe comenzar con http:// o https://)</label>
                       <input
                         type="url"
                         required
@@ -304,6 +316,17 @@ export default function ProfileView({ user, onUserUpdate, onShowToast }) {
                         className="bg-[#090a10] border border-[#23273e] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500"
                       />
                     </div>
+                    {editAvatar.trim() && (
+                      <div className="flex items-center gap-3 p-2 rounded-xl bg-[#090a10] border border-[#1e2338]">
+                        <img
+                          src={editAvatar.trim()}
+                          alt="Vista previa"
+                          className="w-9 h-9 rounded-full object-cover border border-purple-500/40"
+                          onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                        />
+                        <span className="text-[11px] text-slate-400">Vista previa del avatar</span>
+                      </div>
+                    )}
                     <div className="flex justify-end gap-2 pt-1">
                       <button
                         type="button"
