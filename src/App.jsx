@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from './components/layout/Sidebar';
 import Navbar from './components/layout/Navbar';
+import Footer from './components/layout/Footer';
 import DashboardView from './views/DashboardView';
 import CatalogView from './views/CatalogView';
 import LibraryView from './views/LibraryView';
@@ -323,6 +324,9 @@ export default function App() {
               onGoHome={() => handleNavChange('catalogo')}
             />
           )}
+
+          {/* Footer institucional */}
+          <Footer />
         </main>
       </div>
 

@@ -1,15 +1,14 @@
 import React from 'react';
 import { ArrowLeft } from 'lucide-react';
-import sasukeGif from '../assets/404-sasuke.gif';
 
 export default function NotFoundView({ pathname = '', onGoHome }) {
   return (
     <div className="flex-1 flex flex-col items-center justify-center py-12 px-4 text-center">
       <div className="p-8 sm:p-12 rounded-3xl bg-[#121422] border border-[#21263d] max-w-lg w-full flex flex-col items-center gap-6 shadow-2xl">
-        {/* GIF de Sasuke bailando (404) */}
+        {/* GIF de Sasuke bailando (404) desde public/ */}
         <div className="w-full flex justify-center">
           <img
-            src={sasukeGif}
+            src="/404-sasuke.gif"
             alt="Sasuke Bailando 404"
             className="w-56 sm:w-64 h-auto rounded-2xl object-cover shadow-2xl border border-purple-500/30"
           />

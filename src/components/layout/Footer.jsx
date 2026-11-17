@@ -1,5 +1,4 @@
 import React from 'react';
-import { ChevronDown } from 'lucide-react';
 
 export default function Footer() {
   return (
@@ -10,17 +9,10 @@ export default function Footer() {
         <span>cada historia deja una huella.</span>
       </div>
 
-      <div className="flex items-center gap-6">
-        <a href="#normas" className="hover:text-slate-300 transition-colors">
-          Normas de la comunidad
-        </a>
-        <a href="#ayuda" className="hover:text-slate-300 transition-colors">
-          Ayuda
-        </a>
-        <button className="flex items-center gap-1 hover:text-slate-300 transition-colors">
-          <span>Español</span>
-          <ChevronDown className="w-3 h-3" />
-        </button>
+      <div className="flex items-center gap-4">
+        <span className="text-slate-400 font-medium">Programación III · UTN INSPT</span>
+        <span className="text-slate-600">·</span>
+        <span className="text-slate-500 font-mono">Comisión 3-601 TM · Grupo LOTUS</span>
       </div>
     </footer>
   );
