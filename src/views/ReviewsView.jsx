@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { MessageSquare, Star, Send, Trash2, Edit, ShieldAlert, ShieldCheck, Crown } from 'lucide-react';
 import { kirokuApi } from '../services/api';
 
-export default function ReviewsView({ onShowToast, user }) {
+export default function ReviewsView({ onShowToast, user, initialAnimeId }) {
   const [animes, setAnimes] = useState([]);
-  const [selectedAnimeId, setSelectedAnimeId] = useState('');
+  const [selectedAnimeId, setSelectedAnimeId] = useState(initialAnimeId || '');
   const [reviews, setReviews] = useState([]);
   const [loadingReviews, setLoadingReviews] = useState(false);
 
@@ -25,15 +25,19 @@ export default function ReviewsView({ onShowToast, user }) {
 
   // Load animes list for the dropdown
   useEffect(() => {
-    kirokuApi.getAnimes('limite=50')
+    kirokuApi.getAnimes('limite=100')
       .then((res) => {
         if (res?.animes && res.animes.length > 0) {
           setAnimes(res.animes);
-          setSelectedAnimeId(res.animes[0]._id);
+          if (initialAnimeId && res.animes.some(a => String(a._id) === String(initialAnimeId))) {
+            setSelectedAnimeId(initialAnimeId);
+          } else if (!selectedAnimeId) {
+            setSelectedAnimeId(res.animes[0]._id);
+          }
         }
       })
       .catch((err) => console.warn('Error al cargar animes en Reseñas:', err.message));
-  }, []);
+  }, [initialAnimeId]);
 
   // Load reviews when selected anime changes
   const cargarResenas = async (animeId) => {
@@ -244,7 +248,11 @@ export default function ReviewsView({ onShowToast, user }) {
           <div className="flex flex-col gap-3">
             {reviews.map((rev) => {
               const autor = rev.usuario_id || {};
-              const esMiResena = token && (autor._id === user?.id || autor.nombre === user?.name || user?.rol === 'ADMIN');
+              const esAutor = token && (
+                (autor._id && user?.id && String(autor._id) === String(user?.id)) ||
+                autor.nombre === user?.name
+              );
+              const puedeEliminar = esAutor || user?.rol === 'ADMIN';
               const isEditingThis = editingReviewId === rev._id;
 
               // Comprueba rol ADMIN, o si el autor es "Administrador", o si el usuario actual es ADMIN
@@ -254,7 +262,7 @@ export default function ReviewsView({ onShowToast, user }) {
                 || (user?.rol === 'ADMIN' && (autor._id === user?.id || autor.nombre === user?.name));
 
               // Avatar guardado del autor (o mi propio avatar si soy yo el autor y lo acabo de cambiar)
-              const avatarSrc = (esMiResena && user?.avatar) ? user.avatar : autor.avatar;
+              const avatarSrc = (esAutor && user?.avatar) ? user.avatar : autor.avatar;
 
               return (
                 <div
@@ -317,22 +325,26 @@ export default function ReviewsView({ onShowToast, user }) {
                         {rev.calificacion} / 10 ★
                       </div>
 
-                      {esMiResena && !isEditingThis && (
+                      {!isEditingThis && (esAutor || puedeEliminar) && (
                         <div className="flex items-center gap-1">
-                          <button
-                            onClick={() => handleStartEdit(rev)}
-                            className="p-1 rounded text-slate-400 hover:text-purple-300 transition-colors cursor-pointer"
-                            title="Editar reseña"
-                          >
-                            <Edit className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(rev._id)}
-                            className="p-1 rounded text-slate-500 hover:text-rose-400 transition-colors cursor-pointer"
-                            title="Eliminar reseña"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                          {esAutor && (
+                            <button
+                              onClick={() => handleStartEdit(rev)}
+                              className="p-1 rounded text-slate-400 hover:text-purple-300 transition-colors cursor-pointer"
+                              title="Editar mi reseña"
+                            >
+                              <Edit className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                          {puedeEliminar && (
+                            <button
+                              onClick={() => handleDelete(rev._id)}
+                              className="p-1 rounded text-slate-500 hover:text-rose-400 transition-colors cursor-pointer"
+                              title={esAutor ? "Eliminar mi reseña" : "Eliminar reseña (Moderación Admin)"}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>

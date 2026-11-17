@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { User, LogIn, UserPlus, Image, Check, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
+import { User, LogIn, UserPlus, Image, Check, AlertTriangle, ChevronDown, ChevronUp, LogOut } from 'lucide-react';
 import { kirokuApi } from '../services/api';
 
-export default function ProfileView({ user, onUserUpdate, onShowToast }) {
+export default function ProfileView({ user, onUserUpdate, onShowToast, onLogout }) {
   const [tab, setTab] = useState('login'); // 'login' or 'registro'
   const [nombre, setNombre] = useState('');
   const [email, setEmail] = useState('');
@@ -346,6 +346,19 @@ export default function ProfileView({ user, onUserUpdate, onShowToast }) {
                   </form>
                 )}
               </div>
+              {/* Opción 3: Cerrar sesión */}
+              {onLogout && (
+                <button
+                  type="button"
+                  onClick={onLogout}
+                  className="w-full p-4 rounded-2xl bg-rose-950/20 hover:bg-rose-950/40 border border-rose-900/30 flex items-center justify-between text-left text-xs font-semibold text-rose-300 transition-colors cursor-pointer shadow-md"
+                >
+                  <div className="flex items-center gap-3">
+                    <LogOut className="w-4 h-4 text-rose-400" />
+                    <span>Cerrar sesión de mi cuenta</span>
+                  </div>
+                </button>
+              )}
             </div>
           </div>
         )}

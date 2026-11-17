@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Minus, Trash2, BookOpen, CheckCircle, Clock, Edit3, RefreshCw } from 'lucide-react';
+import { Plus, Minus, Trash2, BookOpen, CheckCircle, Clock, Edit3, RefreshCw, MessageSquare, LogIn } from 'lucide-react';
 import { kirokuApi } from '../services/api';
 
-export default function LibraryView({ onShowToast, onOpenReviewModal }) {
+export default function LibraryView({ onShowToast, onOpenReviewModal, onLibraryChange, onNavigate }) {
   const [activeTab, setActiveTab] = useState('Todos');
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -77,6 +77,7 @@ export default function LibraryView({ onShowToast, onOpenReviewModal }) {
       await kirokuApi.eliminarSeguimiento(item._id);
       if (onShowToast) onShowToast(`Se eliminó "${titulo}"`);
       setItems(prev => prev.filter(s => s._id !== item._id));
+      if (onLibraryChange) onLibraryChange();
     } catch (err) {
       if (onShowToast) onShowToast(`Error: ${err.message}`);
     }
@@ -90,6 +91,13 @@ export default function LibraryView({ onShowToast, onOpenReviewModal }) {
         <p className="text-xs text-slate-400 max-w-md">
           Guarda tus animes favoritos, marca tu progreso capítulo a capítulo y sincroniza tus historias. Ve a la sección "Mi Perfil" para ingresar con tus credenciales.
         </p>
+        <button
+          onClick={() => onNavigate && onNavigate('perfil')}
+          className="mt-2 px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs flex items-center gap-2 transition-colors cursor-pointer shadow-lg shadow-purple-600/30"
+        >
+          <LogIn className="w-4 h-4" />
+          <span>Iniciar Sesión</span>
+        </button>
       </div>
     );
   }
@@ -216,14 +224,23 @@ export default function LibraryView({ onShowToast, onOpenReviewModal }) {
                 </button>
               </div>
 
-              {/* Delete action */}
-              <button
-                onClick={() => handleDelete(item)}
-                className="p-2 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-950/20 transition-colors cursor-pointer"
-                title="Eliminar de mi biblioteca"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
+              {/* Review & Delete actions */}
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => onOpenReviewModal && onOpenReviewModal(anime._id)}
+                  className="p-2 rounded-lg text-slate-400 hover:text-purple-300 hover:bg-purple-950/30 transition-colors cursor-pointer"
+                  title="Ver o escribir reseña de este anime"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => handleDelete(item)}
+                  className="p-2 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-950/20 transition-colors cursor-pointer"
+                  title="Eliminar de mi biblioteca"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           );
         })}

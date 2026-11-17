@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Star, Plus, Check, ChevronLeft, ChevronRight, ExternalLink, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Search, Filter, Star, Plus, Check, ChevronLeft, ChevronRight, ExternalLink, RefreshCw, AlertTriangle, X } from 'lucide-react';
 import { kirokuApi, generosService } from '../services/api';
 
 export default function CatalogView({ libraryMap = {}, onAddToLibrary, onShowToast, onOpenDetail }) {
@@ -46,7 +46,7 @@ export default function CatalogView({ libraryMap = {}, onAddToLibrary, onShowToa
     setErrorMsg('');
     const params = new URLSearchParams();
     if (buscar.trim()) params.append('buscar', buscar.trim());
-    if (genero && genero !== 'Todos') params.append('genero', encodeURIComponent(genero));
+    if (genero && genero !== 'Todos') params.append('genero', genero);
     if (estado) params.append('estado', estado);
     if (anio) params.append('anio', anio);
     if (orden) params.append('orden', orden);
@@ -77,6 +77,28 @@ export default function CatalogView({ libraryMap = {}, onAddToLibrary, onShowToa
     cargarCatalogo(1);
   };
 
+  const handleClearSearch = () => {
+    setBuscar('');
+    const params = new URLSearchParams();
+    if (genero && genero !== 'Todos') params.append('genero', genero);
+    if (estado) params.append('estado', estado);
+    if (anio) params.append('anio', anio);
+    if (orden) params.append('orden', orden);
+    params.append('pagina', 1);
+    params.append('limite', 10);
+    setLoading(true);
+    kirokuApi.getAnimes(params.toString())
+      .then(res => {
+        if (res?.animes) {
+          setAnimes(res.animes);
+          setTotal(res.total || 0);
+          setPagina(res.pagina || 1);
+          setTotalPaginas(res.totalPaginas || 1);
+        }
+      })
+      .finally(() => setLoading(false));
+  };
+
   return (
     <div className="flex flex-col gap-8">
       {/* Header */}
@@ -101,6 +123,16 @@ export default function CatalogView({ libraryMap = {}, onAddToLibrary, onShowToa
               placeholder="Buscar por título..."
               className="bg-transparent border-none text-white focus:outline-none w-full"
             />
+            {buscar && (
+              <button
+                type="button"
+                onClick={handleClearSearch}
+                className="text-slate-400 hover:text-white p-0.5 ml-1 transition-colors cursor-pointer"
+                title="Limpiar búsqueda"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
 
           <button

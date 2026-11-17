@@ -255,7 +255,7 @@ export default function DashboardView({ user, onShowToast, onOpenDetail }) {
                       </span>
                     </div>
                     <span className="text-xs font-bold text-purple-400">
-                      {a.seguidores ?? 0} {a.seguidores === 1 ? 'seguidor' : 'seguidores'}
+                      {(a.seguidores ?? a.totalSeguidores ?? 0)} {(a.seguidores ?? a.totalSeguidores ?? 0) === 1 ? 'seguidor' : 'seguidores'}
                     </span>
                   </div>
                 ))
