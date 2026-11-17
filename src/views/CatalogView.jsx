@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Star, Plus, Check, ChevronLeft, ChevronRight, ExternalLink, RefreshCw, AlertTriangle, X } from 'lucide-react';
+import { Search, Filter, Star, Plus, Check, ChevronLeft, ChevronRight, ExternalLink, RefreshCw, AlertTriangle, X, ArrowUp } from 'lucide-react';
 import { kirokuApi, generosService } from '../services/api';
 
 export default function CatalogView({ libraryMap = {}, onAddToLibrary, onShowToast, onOpenDetail }) {
@@ -9,6 +9,7 @@ export default function CatalogView({ libraryMap = {}, onAddToLibrary, onShowToa
   const [totalPaginas, setTotalPaginas] = useState(1);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   // Filtros dinámicos
   const [buscar, setBuscar] = useState('');
@@ -38,6 +39,13 @@ export default function CatalogView({ libraryMap = {}, onAddToLibrary, onShowToa
 
   useEffect(() => {
     cargarGeneros();
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => setShowScrollTop(window.scrollY > 300);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   // Cargar animes con filtros combinados (GET /api/animes)
@@ -349,6 +357,18 @@ export default function CatalogView({ libraryMap = {}, onAddToLibrary, onShowToa
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
+      )}
+
+      {showScrollTop && (
+        <button
+          type="button"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          aria-label="Volver arriba"
+          title="Volver arriba"
+          className="fixed bottom-6 right-6 z-40 w-11 h-11 rounded-full bg-purple-600/90 hover:bg-purple-500 text-white shadow-lg shadow-purple-950/40 flex items-center justify-center transition-colors cursor-pointer"
+        >
+          <ArrowUp className="w-5 h-5" />
+        </button>
       )}
     </div>
   );

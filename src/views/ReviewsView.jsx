@@ -7,6 +7,8 @@ export default function ReviewsView({ onShowToast, user, initialAnimeId }) {
   const [selectedAnimeId, setSelectedAnimeId] = useState(initialAnimeId || '');
   const [reviews, setReviews] = useState([]);
   const [loadingReviews, setLoadingReviews] = useState(false);
+  const [hideSpoilers, setHideSpoilers] = useState(true);
+  const [revealedSpoilers, setRevealedSpoilers] = useState(() => new Set());
 
   // New review form
   const [calificacion, setCalificacion] = useState(10);
@@ -58,6 +60,10 @@ export default function ReviewsView({ onShowToast, user, initialAnimeId }) {
   useEffect(() => {
     cargarResenas(selectedAnimeId);
   }, [selectedAnimeId]);
+
+  const handleRevealSpoiler = (reviewId) => {
+    setRevealedSpoilers((previous) => new Set(previous).add(reviewId));
+  };
 
   // Create review: POST /api/resenas
   const handleSubmitReview = async (e) => {
@@ -240,9 +246,20 @@ export default function ReviewsView({ onShowToast, user, initialAnimeId }) {
             <h2 className="text-xs font-bold text-white uppercase tracking-wider">
               Reseñas registradas ({reviews.length})
             </h2>
-            {loadingReviews && (
-              <span className="text-[11px] text-purple-400 font-medium">Cargando opiniones...</span>
-            )}
+            <div className="flex items-center gap-3">
+              {loadingReviews && (
+                <span className="text-[11px] text-purple-400 font-medium">Cargando opiniones...</span>
+              )}
+              <label className="flex items-center gap-1.5 text-[11px] text-slate-400 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={hideSpoilers}
+                  onChange={(e) => setHideSpoilers(e.target.checked)}
+                  className="rounded bg-[#090a10] border-slate-700 text-purple-600 focus:ring-0"
+                />
+                <span>Ocultar spoilers</span>
+              </label>
+            </div>
           </div>
 
           <div className="flex flex-col gap-3">
@@ -254,6 +271,7 @@ export default function ReviewsView({ onShowToast, user, initialAnimeId }) {
               );
               const puedeEliminar = esAutor || user?.rol === 'ADMIN';
               const isEditingThis = editingReviewId === rev._id;
+              const spoilerOculto = rev.spoiler && hideSpoilers && !revealedSpoilers.has(rev._id);
 
               // Comprueba rol ADMIN, o si el autor es "Administrador", o si el usuario actual es ADMIN
               const esAdmin = autor.rol === 'ADMIN' 
@@ -404,9 +422,22 @@ export default function ReviewsView({ onShowToast, user, initialAnimeId }) {
                     </form>
                   ) : (
                     <>
-                      <p className="text-xs text-slate-300 leading-relaxed">
-                        {rev.texto}
-                      </p>
+                      {spoilerOculto ? (
+                        <div className="flex flex-col items-start gap-2 rounded-xl bg-[#090a10] border border-rose-900/40 p-3">
+                          <p className="text-xs text-rose-300">Esta reseña contiene spoilers.</p>
+                          <button
+                            type="button"
+                            onClick={() => handleRevealSpoiler(rev._id)}
+                            className="text-xs font-semibold text-purple-300 hover:text-purple-200 cursor-pointer"
+                          >
+                            Mostrar reseña
+                          </button>
+                        </div>
+                      ) : (
+                        <p className="text-xs text-slate-300 leading-relaxed">
+                          {rev.texto}
+                        </p>
+                      )}
 
                       {rev.spoiler ? (
                         <div className="flex items-center gap-1.5 text-[10px] text-rose-400">

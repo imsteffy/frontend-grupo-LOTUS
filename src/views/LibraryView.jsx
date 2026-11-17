@@ -9,12 +9,19 @@ export default function LibraryView({ onShowToast, onOpenReviewModal, onLibraryC
 
   const tabs = ['Todos', 'Viendo', 'Pendiente', 'Completado', 'Abandonado'];
   const token = localStorage.getItem('kiroku_token');
+  const visibleItems = activeTab === 'Todos'
+    ? items
+    : items.filter((item) => item.estado === activeTab);
+  const counts = items.reduce((result, item) => {
+    result[item.estado] = (result[item.estado] || 0) + 1;
+    return result;
+  }, {});
 
   const cargarSeguimientos = async () => {
     if (!token) return;
     setLoading(true);
     try {
-      const res = await kirokuApi.getSeguimientos(activeTab);
+      const res = await kirokuApi.getSeguimientos();
       if (Array.isArray(res)) {
         setItems(res);
       }
@@ -27,7 +34,7 @@ export default function LibraryView({ onShowToast, onOpenReviewModal, onLibraryC
 
   useEffect(() => {
     cargarSeguimientos();
-  }, [activeTab, token]);
+  }, [token]);
 
   // Increment episode
   const handleIncrement = async (item) => {
@@ -139,7 +146,7 @@ export default function LibraryView({ onShowToast, onOpenReviewModal, onLibraryC
                   : 'text-slate-400 hover:text-white hover:bg-[#121422]'
               }`}
             >
-              <span>{tab}</span>
+              <span>{tab} ({tab === 'Todos' ? items.length : counts[tab] || 0})</span>
             </button>
           );
         })}
@@ -147,7 +154,7 @@ export default function LibraryView({ onShowToast, onOpenReviewModal, onLibraryC
 
       {/* Seguimientos List */}
       <div className="flex flex-col gap-3">
-        {items.map((item) => {
+        {visibleItems.map((item) => {
           const anime = item.anime_id || {};
           const totalEps = anime.totalEpisodios || 0;
           const percent = totalEps > 0 ? Math.min(100, Math.round((item.episodioActual / totalEps) * 100)) : 0;
@@ -247,7 +254,7 @@ export default function LibraryView({ onShowToast, onOpenReviewModal, onLibraryC
           );
         })}
 
-        {items.length === 0 && !loading && (
+        {visibleItems.length === 0 && !loading && (
           <div className="p-12 text-center rounded-2xl bg-[#121422] border border-[#21263d] text-slate-400 text-xs">
             No tienes animes en estado "{activeTab}". Puedes agregar títulos desde la sección "Catálogo de Animes".
           </div>
