@@ -45,8 +45,9 @@ export default function LibraryView({ onShowToast, onOpenReviewModal, onLibraryC
     if (item.episodioActual <= 0) return;
     const nextEp = item.episodioActual - 1;
     try {
+      // Se omite 'estado' para que el backend aplique la transición automática
+      // de "Completado" a "Viendo" al retroceder episodios (Hallazgo H03)
       await kirokuApi.actualizarSeguimiento(item._id, {
-        estado: item.estado,
         episodioActual: nextEp,
       });
       cargarSeguimientos();
