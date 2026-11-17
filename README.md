@@ -9,6 +9,7 @@
 > Comisión: **3-601 TM** | Grupo: **LOTUS**  
 > Backend desplegado en Render: [https://backend-grupo-lotus.onrender.com](https://backend-grupo-lotus.onrender.com)  
 > 
+> 📘 **Documentación Integral (Word):** [docs/Documentacion_Frontend_KIROKU.docx](docs/Documentacion_Frontend_KIROKU.docx)  
 > 📄 **Documentación Técnica Oficial:** [docs/DOCUMENTACION_TECNICA_FRONTEND.md](docs/DOCUMENTACION_TECNICA_FRONTEND.md)  
 > 🎓 **Guía de Estudio para Defensa Oral:** [docs/GUIA_ESTUDIO_DEFENSA.md](docs/GUIA_ESTUDIO_DEFENSA.md)  
 
@@ -101,6 +102,8 @@ El árbol de directorios está organizado siguiendo el principio de separación 
 ```text
 frontend-grupo-LOTUS/
 ├── docs/                         # Documentación técnica, académica y guías de defensa
+│   ├── Documentacion_Frontend_KIROKU.docx # Documentación integral en formato Word
+│   ├── DOCUMENTACION_TECNICA_FRONTEND.md # Documento técnico oficial en Markdown
 │   ├── GUIA_ESTUDIO_DEFENSA.md   # Guía exhaustiva de conceptos, arquitectura y preguntas de examen
 │   └── PROPUESTA.md              # Propuesta inicial del proyecto y alcance
 ├── public/                       # Activos estáticos públicos servidos directamente por el servidor
