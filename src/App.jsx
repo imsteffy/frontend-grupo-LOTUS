@@ -10,7 +10,7 @@ import AdminView from './views/AdminView';
 import NotFoundView from './views/NotFoundView';
 
 import { kirokuApi } from './services/api';
-import { Star, Plus, Check, X, Crown } from 'lucide-react';
+import { Star, Plus, Check, X, Crown, MessageSquare, ShieldAlert } from 'lucide-react';
 
 const getInitialLibraryMap = () => {
   try {
@@ -57,13 +57,17 @@ export default function App() {
   const [animeReviews, setAnimeReviews] = useState([]);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const [targetReviewAnimeId, setTargetReviewAnimeId] = useState('');
 
   const showToast = (msg) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(''), 3500);
   };
 
-  const handleNavChange = (navId) => {
+  const handleNavChange = (navId, extraAnimeId = null) => {
+    if (extraAnimeId) {
+      setTargetReviewAnimeId(extraAnimeId);
+    }
     const routeMap = {
       catalogo: '/catalogo',
       dashboard: '/dashboard',
@@ -143,7 +147,17 @@ export default function App() {
       }
     };
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+
+    const handleUnauthorized = () => {
+      handleLogout();
+      showToast('Tu sesión ha expirado o no es válida. Por favor inicia sesión nuevamente.');
+    };
+    window.addEventListener('auth:unauthorized', handleUnauthorized);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('auth:unauthorized', handleUnauthorized);
+    };
   }, []);
 
   const handleLogout = () => {
@@ -252,7 +266,9 @@ export default function App() {
           {activeNav === 'biblioteca' && (
             <LibraryView
               onShowToast={showToast}
-              onOpenReviewModal={() => handleNavChange('resenas')}
+              onOpenReviewModal={(animeId) => handleNavChange('resenas', animeId)}
+              onLibraryChange={cargarBiblioteca}
+              onNavigate={handleNavChange}
             />
           )}
 
@@ -260,6 +276,7 @@ export default function App() {
             <ReviewsView
               user={user}
               onShowToast={showToast}
+              initialAnimeId={targetReviewAnimeId}
             />
           )}
 
@@ -279,7 +296,25 @@ export default function App() {
           )}
 
           {activeNav === 'admin' && (
-            <AdminView onShowToast={showToast} />
+            user?.rol === 'ADMIN' ? (
+              <AdminView onShowToast={showToast} />
+            ) : (
+              <div className="p-12 text-center rounded-3xl bg-[#121422] border border-rose-900/40 flex flex-col items-center gap-4 max-w-lg mx-auto my-12 shadow-2xl">
+                <div className="w-12 h-12 rounded-2xl bg-rose-950/60 border border-rose-800/40 flex items-center justify-center text-rose-400">
+                  <ShieldAlert className="w-6 h-6" />
+                </div>
+                <h2 className="text-lg font-bold text-white">Acceso Denegado (403)</h2>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Esta sección está reservada exclusivamente para administradores de Kiroku. Tu cuenta no posee permisos para gestionar este panel.
+                </p>
+                <button
+                  onClick={() => handleNavChange('catalogo')}
+                  className="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs transition-colors cursor-pointer shadow-lg shadow-purple-600/30"
+                >
+                  Volver al Catálogo
+                </button>
+              </div>
+            )
           )}
 
           {activeNav === '404' && (
@@ -372,10 +407,26 @@ export default function App() {
 
             {/* Reviews list con destaque en dorado si el autor es Admin */}
             <div className="flex flex-col gap-2 pt-2 border-t border-[#1b1f33]">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
-                <span>Reseñas de la Comunidad</span>
-                <span className="text-[10px] text-purple-400 font-semibold">{animeReviews.length} registradas</span>
-              </span>
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                  Reseñas de la Comunidad
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-purple-400 font-semibold">{animeReviews.length} registradas</span>
+                  <button
+                    onClick={() => {
+                      const animeId = selectedAnime._id;
+                      setSelectedAnime(null);
+                      handleNavChange('resenas', animeId);
+                    }}
+                    className="text-[10px] text-purple-300 hover:text-white font-bold flex items-center gap-1 bg-purple-900/50 hover:bg-purple-800/60 border border-purple-700/50 px-2 py-0.5 rounded-lg transition-colors cursor-pointer"
+                    title="Ir a publicar reseña para este anime"
+                  >
+                    <MessageSquare className="w-2.5 h-2.5" />
+                    <span>Escribir reseña</span>
+                  </button>
+                </div>
+              </div>
 
               <div className="max-h-48 overflow-y-auto flex flex-col gap-2">
                 {animeReviews.map((r) => {
