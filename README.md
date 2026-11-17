@@ -19,13 +19,30 @@ El frontend consume de forma completa los servicios proporcionados por la **API 
 
 ---
 
-## 🛠️ Tecnologías Utilizadas
+## 🛠️ Tecnologías y Librerías Utilizadas
 
-* **React 18:** Biblioteca principal para la interfaz declarativa y componentes modulares.
-* **Vite:** Herramienta de compilación ultrarrápida y servidor de desarrollo con HMR.
-* **Tailwind CSS:** Framework de estilos utilitarios con paleta cinematográfica dark mode y soporte responsive.
-* **Lucide React:** Iconografía vectorial moderna y consistente.
-* **Fetch API & JWT:** Capa de comunicación HTTP con gestión segura de tokens en `localStorage`.
+A continuación se detalla cada una de las librerías que integran el proyecto y su propósito específico (según consigna de evaluación):
+
+### Dependencias de Producción (`dependencies`):
+* **`react` (^18.3.1):** Biblioteca núcleo para la construcción de la SPA (Single Page Application) mediante componentes declarativos, gestión de estado con hooks (`useState`, `useEffect`) y reconciliación de DOM virtual.
+* **`react-dom` (^18.3.1):** Provee el paquete de renderizado para conectar los componentes de React con el Document Object Model (DOM) del navegador mediante `createRoot`.
+* **`lucide-react` (^1.16.0):** Conjunto integral de iconografía vectorial SVG modular, accesible y optimizada por tree-shaking para representar acciones interactivas (búsqueda, estrellas, filtros, sesión, alertas, navegación).
+
+### Dependencias de Desarrollo y Compilación (`devDependencies`):
+* **`vite` (^6.0.7):** Bundler y servidor de desarrollo moderno que aprovecha ES Modules nativos para brindar recarga rápida en caliente (HMR - Hot Module Replacement) y compilación optimizada para producción con Rollup.
+* **`@vitejs/plugin-react` (^4.3.4):** Plugin oficial de Vite que habilita Fast Refresh y transformación eficiente de código JSX mediante Babel.
+* **`tailwindcss` (^3.4.17):** Framework de estilos utilitarios (utility-first) utilizado para diseñar una interfaz cinematográfica oscura, coherente y 100% responsive (móvil, tablet y escritorio).
+* **`postcss` (^8.4.49):** Herramienta que procesa y transforma los estilos CSS modernos utilizando plugins.
+* **`autoprefixer` (^10.4.20):** Plugin de PostCSS que añade automáticamente prefijos propietarios de proveedores (`-webkit-`, etc.) para asegurar compatibilidad cross-browser.
+
+---
+
+## 💻 Requisitos de Software Necesario
+
+Para poder instalar, ejecutar y compilar este proyecto se requiere contar previamente con:
+* **Node.js:** Versión `18.0.0` o superior (se recomienda versión LTS activa `20.x` o `22.x`).
+* **npm:** Versión `9.0.0` o superior (incluido automáticamente con Node.js).
+* **Navegador Web Moderno:** Chrome, Firefox, Edge, Safari o cualquier navegador con soporte nativo de ES6+.
 
 ---
 
@@ -45,48 +62,72 @@ npm install
 ### 3. Configurar variables de entorno
 Crea un archivo `.env` en la raíz del proyecto (puedes basarte en `.env.example`):
 ```env
-# Conexión directa a la API desplegada en Render:
+# Conexión directa a la API REST de Kiroku desplegada en Render:
 VITE_API_URL=https://backend-grupo-lotus.onrender.com/api
 
-# O para desarrollo local contra tu servidor Node:
+# O para desarrollo local contra tu servidor Express / Node:
 # VITE_API_URL=http://localhost:3000/api
 ```
 
-### 4. Ejecutar el servidor de desarrollo
-```bash
-npm run dev
-```
-La aplicación estará disponible en `http://localhost:5173`. Gracias a la configuración `server.host: true`, también estará accesible desde celulares u otros dispositivos conectados a la misma red local.
+### 4. Modos de Ejecución
 
-### 5. Compilar para producción
-```bash
-npm run build
-```
-Genera la carpeta optimizada `dist/` lista para ser desplegada en Vercel, Netlify o Render Static Sites.
+* **Modo Desarrollo (con HMR y acceso en red local):**
+  ```bash
+  npm run dev
+  ```
+  Inicia el servidor local en `http://localhost:5173`. Gracias al flag `--host` configurado en Vite, también muestra la IP de tu red para probar el comportamiento responsive directamente desde un teléfono móvil.
+
+* **Modo Compilación para Producción:**
+  ```bash
+  npm run build
+  ```
+  Genera la carpeta optimizada y minificada `dist/` con todos los activos estáticos listos para desplegar.
+
+* **Modo Vista Previa de Producción:**
+  ```bash
+  npm run preview
+  ```
+  Sirve localmente el bundle generado en `dist/` para validar el rendimiento y las rutas antes de subir a hosting.
 
 ---
 
-## 🧩 Estructura y Módulos del Frontend
+## 🧩 Estructura del Proyecto y Responsabilidad de Carpetas
 
-La aplicación se organiza siguiendo la repartición de responsabilidades del equipo:
+El árbol de directorios está organizado siguiendo el principio de separación de responsabilidades y modularidad:
 
 ```text
-src/
-├── components/
-│   └── layout/
-│       ├── Navbar.jsx       # Cabecera responsive con menú colapsable
-│       └── Sidebar.jsx      # Navegación lateral y botón de sesión fijo
-├── views/
-│   ├── CatalogView.jsx      # Módulo 2: Catálogo oficial, filtros y paginación
-│   ├── LibraryView.jsx      # Módulo 3: Biblioteca personal y avance +1 cap
-│   ├── ReviewsView.jsx      # Módulo 3: Reseñas comunitarias (CRUD)
-│   ├── DashboardView.jsx    # Módulo 3: Analítica de MongoDB y rankings
-│   ├── ProfileView.jsx      # Módulo 1: Login, registro y edición de perfil
-│   └── AdminView.jsx        # Módulos 1 y 2: Panel exclusivo de administración
-├── services/
-│   └── api.js               # Capa de consumo HTTP centralizada con JWT
-├── App.jsx                  # Enrutador y estado global de la aplicación
-└── index.css                # Directivas Tailwind y estilos base
+frontend-grupo-LOTUS/
+├── public/                       # Activos estáticos públicos servidos directamente por el servidor
+│   ├── favicon.png               # Ícono de pestaña del navegador
+│   ├── kiroku_logo.png           # Logotipo oficial de la plataforma
+│   ├── 404-sasuke.gif            # Animación temática para la vista 404
+│   └── _redirects                # Regla de reescritura SPA para Netlify / Render Static Sites
+├── src/                          # Código fuente de la aplicación React
+│   ├── components/               # Componentes reutilizables de UI y layout
+│   │   └── layout/
+│   │       ├── Navbar.jsx        # Barra superior con avatar, menú responsive y branding
+│   │       ├── Sidebar.jsx       # Barra lateral de navegación con drawer para celulares
+│   │       └── Footer.jsx        # Pie de página institucional y créditos académicos
+│   ├── views/                    # Vistas principales de la SPA (rutas de la aplicación)
+│   │   ├── CatalogView.jsx       # Catálogo oficial de animes, filtros combinados y paginador
+│   │   ├── LibraryView.jsx       # Biblioteca personal, tabs por estado y botón +1 capítulo
+│   │   ├── ReviewsView.jsx       # Muro de reseñas comunitarias, calificación 1-10 y spoilers
+│   │   ├── DashboardView.jsx     # Analítica de MongoDB: horas vistas, estados y rankings
+│   │   ├── ProfileView.jsx       # Autenticación (Login / Registro) y edición de perfil
+│   │   ├── AdminView.jsx         # Consola de administración (Series, Géneros y Usuarios)
+│   │   └── NotFoundView.jsx      # Pantalla 404 para URLs no reconocidas
+│   ├── services/
+│   │   └── api.js                # Cliente HTTP centralizado (fetch, JWT Bearer y manejo de 401)
+│   ├── App.jsx                   # Componente raíz, orquestador de rutas, modal y estado global
+│   ├── main.jsx                  # Punto de entrada de React 18 (renderizado en #root)
+│   └── index.css                 # Importación de Tailwind CSS y tipografía Plus Jakarta Sans
+├── index.html                    # Documento HTML base de la SPA (Single Page Application)
+├── package.json                  # Manifiesto del proyecto, dependencias y scripts de ejecución
+├── postcss.config.js             # Configuración de PostCSS y Autoprefixer
+├── tailwind.config.js            # Configuración de Tailwind CSS (colores oscuros y fuentes)
+├── vercel.json                   # Reglas de reescritura para despliegue en Vercel
+├── vite.config.js                # Configuración de Vite y del plugin de React
+└── README.md                     # Documentación técnica completa del proyecto
 ```
 
 ---
