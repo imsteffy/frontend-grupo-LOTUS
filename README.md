@@ -7,7 +7,10 @@
 > **Plataforma web de seguimiento y reseñas de anime.**  
 > Cátedra: **Programación III** — INSPT  
 > Comisión: **3-601 TM** | Grupo: **LOTUS**  
-> Backend desplegado en Render: [https://backend-grupo-lotus.onrender.com](https://backend-grupo-lotus.onrender.com)
+> Backend desplegado en Render: [https://backend-grupo-lotus.onrender.com](https://backend-grupo-lotus.onrender.com)  
+> 
+> 📄 **Documentación Técnica Oficial:** [docs/DOCUMENTACION_TECNICA_FRONTEND.md](docs/DOCUMENTACION_TECNICA_FRONTEND.md)  
+> 🎓 **Guía de Estudio para Defensa Oral:** [docs/GUIA_ESTUDIO_DEFENSA.md](docs/GUIA_ESTUDIO_DEFENSA.md)  
 
 ---
 
