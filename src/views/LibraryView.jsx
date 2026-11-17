@@ -162,6 +162,7 @@ export default function LibraryView({ onShowToast, onOpenReviewModal, onLibraryC
                 <img
                   src={anime.imagenPortada}
                   alt={anime.titulo}
+                  referrerPolicy="no-referrer"
                   className="w-12 h-16 rounded-xl object-cover bg-[#090a10] shadow-sm flex-shrink-0"
                   onError={(e) => {
                     e.currentTarget.src = "https://via.placeholder.com/100x140?text=No+Cover";
