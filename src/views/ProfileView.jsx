@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, LogIn, UserPlus, Image, Check, AlertTriangle, ChevronDown, ChevronUp, LogOut } from 'lucide-react';
+import { User, LogIn, UserPlus, Image, Check, AlertTriangle, ChevronDown, ChevronUp, LogOut, Eye, EyeOff } from 'lucide-react';
 import { kirokuApi } from '../services/api';
 
 export default function ProfileView({ user, onUserUpdate, onShowToast, onLogout }) {
@@ -7,6 +7,7 @@ export default function ProfileView({ user, onUserUpdate, onShowToast, onLogout 
   const [nombre, setNombre] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [verPassword, setVerPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -177,15 +178,25 @@ export default function ProfileView({ user, onUserUpdate, onShowToast, onLogout 
 
               <div className="flex flex-col gap-1.5 text-left">
                 <label className="text-xs font-semibold text-slate-300">Contraseña</label>
-                <input
-                  type="password"
-                  required
-                  minLength={6}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="bg-[#090a10] border border-[#23273e] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500"
-                />
+                <div className="relative">
+                  <input
+                    type={verPassword ? 'text' : 'password'}
+                    required
+                    minLength={6}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full bg-[#090a10] border border-[#23273e] rounded-xl pl-3 pr-9 py-2 text-xs text-white focus:outline-none focus:border-purple-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setVerPassword((prev) => !prev)}
+                    aria-label={verPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer"
+                  >
+                    {verPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
 
               <button
@@ -306,7 +317,7 @@ export default function ProfileView({ user, onUserUpdate, onShowToast, onLogout 
                 {abrirAgregarAvatar && (
                   <form onSubmit={handleSaveAvatar} className="p-4 pt-0 border-t border-[#1b1f33] flex flex-col gap-3 mt-3">
                     <div className="flex flex-col gap-1.5 text-left">
-                      <label className="text-[11px] text-slate-400">URL de la imagen (debe comenzar con http:// o https://)</label>
+                      <label className="text-[11px] text-slate-400">URL de la imagen (debe comenzar con http:// o https://). Admite enlaces de Unsplash, Discord, GitHub o Gravatar.</label>
                       <input
                         type="url"
                         required

@@ -220,7 +220,7 @@ export default function CatalogView({ libraryMap = {}, onAddToLibrary, onShowToa
 
       {/* Results Count & Status */}
       <div className="flex items-center justify-between text-xs text-slate-400">
-        <span>Mostrando <strong>{animes.length}</strong> de <strong>{total}</strong> animes</span>
+        <span>Mostrando <strong>{animes.length}</strong> de <strong>{total}</strong> series encontradas</span>
         {loading && (
           <span className="text-purple-400 font-medium flex items-center gap-1.5 animate-pulse">
             <RefreshCw className="w-3.5 h-3.5 animate-spin" />
