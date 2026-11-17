@@ -53,7 +53,7 @@ export default function AdminView({ onShowToast }) {
     generos: [],
     totalEpisodios: 12,
     estadoEmision: 'Finalizado',
-    imagenPortada: 'https://via.placeholder.com/300x450?text=Portada',
+    imagenPortada: 'https://placehold.co/300x450/121422/a855f7?text=Portada',
     anioEstreno: 2024,
   });
 
@@ -484,7 +484,7 @@ export default function AdminView({ onShowToast }) {
                   generos: generos.length > 0 ? [generos[0].nombre] : [],
                   totalEpisodios: 12,
                   estadoEmision: 'Finalizado',
-                  imagenPortada: 'https://via.placeholder.com/300x450?text=Portada',
+                  imagenPortada: 'https://placehold.co/300x450/121422/a855f7?text=Portada',
                   anioEstreno: 2024,
                 });
                 setIsAnimeModalOpen(true);
@@ -551,7 +551,7 @@ export default function AdminView({ onShowToast }) {
                           referrerPolicy="no-referrer"
                           className="w-10 h-14 rounded-lg object-cover bg-[#090a10] shadow-sm flex-shrink-0"
                           onError={(e) => {
-                            e.currentTarget.src = "https://via.placeholder.com/100x140?text=No+Img";
+                            e.currentTarget.src = "https://placehold.co/100x140/121422/a855f7?text=Sin+Portada";
                           }}
                         />
                         <div>

@@ -165,7 +165,7 @@ export default function LibraryView({ onShowToast, onOpenReviewModal, onLibraryC
                   referrerPolicy="no-referrer"
                   className="w-12 h-16 rounded-xl object-cover bg-[#090a10] shadow-sm flex-shrink-0"
                   onError={(e) => {
-                    e.currentTarget.src = "https://via.placeholder.com/100x140?text=No+Cover";
+                    e.currentTarget.src = "https://placehold.co/100x140/121422/a855f7?text=Sin+Portada";
                   }}
                 />
                 <div>
