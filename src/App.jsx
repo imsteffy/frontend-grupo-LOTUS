@@ -434,9 +434,9 @@ export default function App() {
                   const esAdmin = autor.rol === 'ADMIN' 
                     || autor.nombre === 'Administrador' 
                     || autor.nombre?.toLowerCase().includes('admin')
-                    || (user?.rol === 'ADMIN' && (autor._id === user?.id || autor.nombre === user?.name));
+                    || (user?.rol === 'ADMIN' && (String(autor._id) === String(user?.id) || autor.nombre === user?.name));
 
-                  const avatarSrc = (autor._id === user?.id && user?.avatar) ? user.avatar : autor.avatar;
+                  const avatarSrc = (String(autor._id) === String(user?.id) && user?.avatar) ? user.avatar : autor.avatar;
 
                   return (
                     <div
