@@ -247,6 +247,7 @@ export default function CatalogView({ libraryMap = {}, onAddToLibrary, onShowToa
                   alt={anime.titulo}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                   loading="lazy"
+                  referrerPolicy="no-referrer"
                   onError={(e) => {
                     e.currentTarget.src = "https://via.placeholder.com/300x450?text=No+Cover";
                   }}

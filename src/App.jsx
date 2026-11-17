@@ -346,6 +346,7 @@ export default function App() {
                 <img
                   src={selectedAnime.imagenPortada}
                   alt={selectedAnime.titulo}
+                  referrerPolicy="no-referrer"
                   className="w-14 sm:w-16 h-20 sm:h-24 rounded-xl object-cover bg-[#090a10] shadow-md flex-shrink-0"
                   onError={(e) => {
                     e.currentTarget.src = "https://via.placeholder.com/150x200?text=Sin+Portada";

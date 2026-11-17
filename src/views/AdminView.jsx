@@ -548,6 +548,7 @@ export default function AdminView({ onShowToast }) {
                         <img
                           src={a.imagenPortada}
                           alt={a.titulo}
+                          referrerPolicy="no-referrer"
                           className="w-10 h-14 rounded-lg object-cover bg-[#090a10] shadow-sm flex-shrink-0"
                           onError={(e) => {
                             e.currentTarget.src = "https://via.placeholder.com/100x140?text=No+Img";
