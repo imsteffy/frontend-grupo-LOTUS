@@ -3,7 +3,8 @@
 > **Cátedra:** Programación III — Instituto Nacional Superior del Profesorado Técnico (UTN INSPT)  
 > **Comisión:** 3-601 TM | **Grupo:** LOTUS  
 > **Aplicación:** SPA (Single Page Application) de Seguimiento y Reseñas de Anime  
-> **Backend API REST:** [https://backend-grupo-lotus.onrender.com](https://backend-grupo-lotus.onrender.com)  
+> **Frontend Desplegado (Vercel):** [https://frontend-grupo-lotus.vercel.app](https://frontend-grupo-lotus.vercel.app)  
+> **Backend API REST (Render):** [https://backend-grupo-lotus.onrender.com](https://backend-grupo-lotus.onrender.com)  
 
 ---
 

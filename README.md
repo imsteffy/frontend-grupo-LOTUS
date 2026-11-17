@@ -7,7 +7,8 @@
 > **Plataforma web de seguimiento y reseñas de anime.**  
 > Cátedra: **Programación III** — INSPT  
 > Comisión: **3-601 TM** | Grupo: **LOTUS**  
-> Backend desplegado en Render: [https://backend-grupo-lotus.onrender.com](https://backend-grupo-lotus.onrender.com)  
+> 🌐 **Frontend desplegado en Vercel:** [https://frontend-grupo-lotus.vercel.app](https://frontend-grupo-lotus.vercel.app)  
+> ⚙️ **Backend desplegado en Render:** [https://backend-grupo-lotus.onrender.com](https://backend-grupo-lotus.onrender.com)  
 > 
 > 📘 **Documentación Integral (Word):** [docs/Documentacion_Frontend_KIROKU.docx](docs/Documentacion_Frontend_KIROKU.docx)  
 > 📄 **Documentación Técnica Oficial:** [docs/DOCUMENTACION_TECNICA_FRONTEND.md](docs/DOCUMENTACION_TECNICA_FRONTEND.md)  

@@ -4,6 +4,7 @@
 > **Comisión:** 3-601 TM | **Grupo:** LOTUS  
 > **Proyecto:** Kiroku (記録) — Plataforma de Seguimiento y Reseñas de Anime  
 > **Repositorio Frontend:** [imsteffy/frontend-grupo-LOTUS](https://github.com/imsteffy/frontend-grupo-LOTUS)  
+> **Frontend Desplegado en Vercel:** [https://frontend-grupo-lotus.vercel.app](https://frontend-grupo-lotus.vercel.app)  
 > **API REST Desplegada en Render:** `https://backend-grupo-lotus.onrender.com/api`
 
 ---
