@@ -249,7 +249,7 @@ export default function CatalogView({ libraryMap = {}, onAddToLibrary, onShowToa
                   loading="lazy"
                   referrerPolicy="no-referrer"
                   onError={(e) => {
-                    e.currentTarget.src = "https://via.placeholder.com/300x450?text=No+Cover";
+                    e.currentTarget.src = "https://placehold.co/300x450/121422/a855f7?text=Sin+Portada";
                   }}
                 />
 
