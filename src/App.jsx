@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from './components/layout/Sidebar';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
+import Toast from './components/common/Toast';
+import RouteGuard from './components/common/RouteGuard';
+import AnimeDetailModal from './components/anime/AnimeDetailModal';
+
 import DashboardView from './views/DashboardView';
 import CatalogView from './views/CatalogView';
 import LibraryView from './views/LibraryView';
@@ -11,7 +15,6 @@ import AdminView from './views/AdminView';
 import NotFoundView from './views/NotFoundView';
 
 import { kirokuApi } from './services/api';
-import { Star, Plus, Check, X, Crown, MessageSquare, ShieldAlert } from 'lucide-react';
 
 const getInitialLibraryMap = () => {
   try {
@@ -297,25 +300,13 @@ export default function App() {
           )}
 
           {activeNav === 'admin' && (
-            user?.rol === 'ADMIN' ? (
+            <RouteGuard
+              user={user}
+              requiredRole="ADMIN"
+              onRedirect={() => handleNavChange('catalogo')}
+            >
               <AdminView onShowToast={showToast} />
-            ) : (
-              <div className="p-12 text-center rounded-3xl bg-[#121422] border border-rose-900/40 flex flex-col items-center gap-4 max-w-lg mx-auto my-12 shadow-2xl">
-                <div className="w-12 h-12 rounded-2xl bg-rose-950/60 border border-rose-800/40 flex items-center justify-center text-rose-400">
-                  <ShieldAlert className="w-6 h-6" />
-                </div>
-                <h2 className="text-lg font-bold text-white">Acceso Denegado (403)</h2>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Esta sección está reservada exclusivamente para administradores de Kiroku. Tu cuenta no posee permisos para gestionar este panel.
-                </p>
-                <button
-                  onClick={() => handleNavChange('catalogo')}
-                  className="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs transition-colors cursor-pointer shadow-lg shadow-purple-600/30"
-                >
-                  Volver al Catálogo
-                </button>
-              </div>
-            )
+            </RouteGuard>
           )}
 
           {activeNav === '404' && (
@@ -330,208 +321,20 @@ export default function App() {
         </main>
       </div>
 
-      {/* Anime Detail Modal */}
-      {selectedAnime && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-sm"
-          onClick={() => setSelectedAnime(null)}
-        >
-          <div
-            className="bg-[#121422] border border-[#272d47] rounded-3xl max-w-2xl w-full p-5 sm:p-6 flex flex-col gap-5 shadow-2xl relative max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header */}
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex items-center gap-3 sm:gap-4">
-                <img
-                  src={selectedAnime.imagenPortada}
-                  alt={selectedAnime.titulo}
-                  referrerPolicy="no-referrer"
-                  className="w-14 sm:w-16 h-20 sm:h-24 rounded-xl object-cover bg-[#090a10] shadow-md flex-shrink-0"
-                  onError={(e) => {
-                    e.currentTarget.src = "https://placehold.co/150x200/121422/a855f7?text=Sin+Portada";
-                  }}
-                />
-                <div>
-                  <h3 className="text-base sm:text-lg font-black text-white leading-tight">
-                    {selectedAnime.titulo}
-                  </h3>
-                  {selectedAnime.tituloOriginal && (
-                    <p className="text-xs text-slate-400 italic mt-0.5">{selectedAnime.tituloOriginal}</p>
-                  )}
-                  <div className="flex items-center gap-2 text-xs font-bold text-amber-400 mt-1">
-                    <Star className="w-3.5 h-3.5 fill-amber-400" />
-                    <span>{selectedAnime.calificacionPromedio || 0} ★</span>
-                    <span className="text-slate-500 font-normal">({selectedAnime.totalResenas || 0} reseñas)</span>
-                  </div>
-                </div>
-              </div>
+      {/* Modal Ficha Técnica de Anime */}
+      <AnimeDetailModal
+        anime={selectedAnime}
+        isOpen={Boolean(selectedAnime)}
+        onClose={() => setSelectedAnime(null)}
+        reviews={animeReviews}
+        user={user}
+        isAlreadyInLibrary={isAlreadyInLibrary}
+        onAddToLibrary={handleAddToLibrary}
+        onNavigateToReviews={(animeId) => handleNavChange('resenas', animeId)}
+      />
 
-              <button
-                onClick={() => setSelectedAnime(null)}
-                className="w-8 h-8 rounded-full bg-[#1b1f33] hover:bg-[#282e4a] text-slate-400 hover:text-white flex items-center justify-center text-sm cursor-pointer flex-shrink-0"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Technical sheet pills */}
-            <div className="grid grid-cols-3 gap-2 text-center text-xs">
-              <div className="p-2 rounded-xl bg-[#090a10] border border-[#1e2338]">
-                <span className="text-[10px] text-slate-500 uppercase block">Episodios</span>
-                <span className="font-bold text-white">
-                  {selectedAnime.totalEpisodios > 0 ? selectedAnime.totalEpisodios : 'Continuo'}
-                </span>
-              </div>
-              <div className="p-2 rounded-xl bg-[#090a10] border border-[#1e2338]">
-                <span className="text-[10px] text-slate-500 uppercase block">Estado</span>
-                <span className="font-bold text-purple-300 truncate block">{selectedAnime.estadoEmision}</span>
-              </div>
-              <div className="p-2 rounded-xl bg-[#090a10] border border-[#1e2338]">
-                <span className="text-[10px] text-slate-500 uppercase block">Año</span>
-                <span className="font-bold text-white">{selectedAnime.anioEstreno || '—'}</span>
-              </div>
-            </div>
-
-            {/* Géneros */}
-            <div className="flex flex-wrap gap-1.5">
-              {Array.isArray(selectedAnime.generos) && selectedAnime.generos.map((g) => (
-                <span key={g} className="px-2.5 py-0.5 rounded-lg bg-[#1a1d2e] text-[11px] font-semibold text-purple-300 border border-[#2b314e]">
-                  {g}
-                </span>
-              ))}
-            </div>
-
-            {/* Sinopsis */}
-            <div>
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Sinopsis</span>
-              <p className="text-xs text-slate-300 leading-relaxed bg-[#090a10] p-3 rounded-xl border border-[#1e2338]">
-                {selectedAnime.sinopsis || 'Sin sinopsis disponible.'}
-              </p>
-            </div>
-
-            {/* Reviews list con destaque en dorado si el autor es Admin */}
-            <div className="flex flex-col gap-2 pt-2 border-t border-[#1b1f33]">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                  Reseñas de la Comunidad
-                </span>
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] text-purple-400 font-semibold">{animeReviews.length} registradas</span>
-                  <button
-                    onClick={() => {
-                      const animeId = selectedAnime._id;
-                      setSelectedAnime(null);
-                      handleNavChange('resenas', animeId);
-                    }}
-                    className="text-[10px] text-purple-300 hover:text-white font-bold flex items-center gap-1 bg-purple-900/50 hover:bg-purple-800/60 border border-purple-700/50 px-2 py-0.5 rounded-lg transition-colors cursor-pointer"
-                    title="Ir a publicar reseña para este anime"
-                  >
-                    <MessageSquare className="w-2.5 h-2.5" />
-                    <span>Escribir reseña</span>
-                  </button>
-                </div>
-              </div>
-
-              <div className="max-h-48 overflow-y-auto flex flex-col gap-2">
-                {animeReviews.map((r) => {
-                  const autor = r.usuario_id || {};
-                  const esAdmin = autor.rol === 'ADMIN' 
-                    || autor.nombre === 'Administrador' 
-                    || autor.nombre?.toLowerCase().includes('admin')
-                    || (user?.rol === 'ADMIN' && (String(autor._id) === String(user?.id) || autor.nombre === user?.name));
-
-                  const avatarSrc = (String(autor._id) === String(user?.id) && user?.avatar) ? user.avatar : autor.avatar;
-
-                  return (
-                    <div
-                      key={r._id}
-                      className={`p-3 rounded-xl text-xs transition-all flex flex-col gap-1.5 ${
-                        esAdmin
-                          ? 'border-2 border-amber-400/80 bg-gradient-to-r from-amber-950/25 via-[#181512] to-[#121422] shadow-md shadow-amber-950/20'
-                          : 'border border-[#1e2338] bg-[#090a10]'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between text-[11px]">
-                        <div className="flex items-center gap-2">
-                          {avatarSrc ? (
-                            <img
-                              src={avatarSrc}
-                              alt={autor.nombre || 'Avatar'}
-                              className={`w-6 h-6 rounded-full object-cover ${
-                                esAdmin ? 'border-2 border-amber-400' : 'border border-purple-500/40'
-                              }`}
-                              onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                            />
-                          ) : (
-                            <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px] ${
-                              esAdmin ? 'bg-amber-400 text-slate-950 shadow-sm' : 'bg-purple-900/60 text-purple-200'
-                            }`}>
-                              {(autor.nombre || 'U').substring(0, 2).toUpperCase()}
-                            </div>
-                          )}
-
-                          <span className="font-bold text-white flex items-center gap-1.5">
-                            <span>{autor.nombre || 'Usuario'}</span>
-                            {esAdmin && (
-                              <span className="px-1.5 py-0.2 rounded bg-amber-400/20 text-amber-300 border border-amber-400/50 text-[9px] font-black uppercase flex items-center gap-0.5">
-                                <Crown className="w-2.5 h-2.5 text-amber-400" />
-                                <span>Admin</span>
-                              </span>
-                            )}
-                          </span>
-                        </div>
-                        <span className={`font-bold ${esAdmin ? 'text-amber-300' : 'text-amber-400'}`}>
-                          {r.calificacion} / 10 ★
-                        </span>
-                      </div>
-
-                      <p className="text-slate-300 text-[11px] leading-relaxed">{r.texto}</p>
-                      {r.spoiler && (
-                        <span className="text-[10px] text-rose-400 font-semibold block">⚠️ Contiene spoilers</span>
-                      )}
-                    </div>
-                  );
-                })}
-
-                {animeReviews.length === 0 && (
-                  <p className="text-center text-xs text-slate-500 py-3">No hay reseñas aún para este título.</p>
-                )}
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="flex items-center gap-3 pt-3 border-t border-[#1b1f33]">
-              <button
-                disabled={isAlreadyInLibrary}
-                onClick={() => !isAlreadyInLibrary && handleAddToLibrary(selectedAnime._id, selectedAnime.titulo)}
-                className={`flex-1 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-colors ${
-                  isAlreadyInLibrary
-                    ? 'bg-lime-400 text-slate-950 font-bold opacity-90 cursor-default'
-                    : 'bg-purple-600 hover:bg-purple-500 text-white cursor-pointer shadow-lg shadow-purple-600/30'
-                }`}
-              >
-                {isAlreadyInLibrary ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-                <span>{isAlreadyInLibrary ? 'En tu Biblioteca' : 'Añadir a mi Biblioteca'}</span>
-              </button>
-              <button
-                onClick={() => setSelectedAnime(null)}
-                className="px-4 sm:px-5 py-2.5 rounded-xl bg-[#1b1f33] hover:bg-[#282e4a] text-slate-300 text-xs font-medium transition-colors cursor-pointer"
-              >
-                Cerrar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Toast Notification */}
-      {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#141728] border border-purple-500 text-purple-200 px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 text-xs font-semibold animate-bounce max-w-xs sm:max-w-md">
-          <span className="w-2 h-2 rounded-full bg-purple-400 flex-shrink-0"></span>
-          <span className="truncate">{toastMessage}</span>
-        </div>
-      )}
+      {/* Notificación flotante Toast */}
+      <Toast message={toastMessage} />
     </div>
   );
 }

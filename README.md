@@ -97,17 +97,20 @@ El árbol de directorios está organizado siguiendo el principio de separación 
 
 ```text
 frontend-grupo-LOTUS/
+├── docs/                         # Documentación técnica, académica y guías de defensa
+│   ├── GUIA_ESTUDIO_DEFENSA.md   # Guía exhaustiva de conceptos, arquitectura y preguntas de examen
+│   └── PROPUESTA.md              # Propuesta inicial del proyecto y alcance
 ├── public/                       # Activos estáticos públicos servidos directamente por el servidor
 │   ├── favicon.png               # Ícono de pestaña del navegador
 │   ├── kiroku_logo.png           # Logotipo oficial de la plataforma
 │   ├── 404-sasuke.gif            # Animación temática para la vista 404
 │   └── _redirects                # Regla de reescritura SPA para Netlify / Render Static Sites
-├── src/                          # Código fuente de la aplicación React
-│   ├── components/               # Componentes reutilizables de UI y layout
-│   │   └── layout/
-│   │       ├── Navbar.jsx        # Barra superior con avatar, menú responsive y branding
-│   │       ├── Sidebar.jsx       # Barra lateral de navegación con drawer para celulares
-│   │       └── Footer.jsx        # Pie de página institucional y créditos académicos
+├── src/                          # Código fuente modular de la aplicación React
+│   ├── components/               # Componentes reutilizables organizados por dominio
+│   │   ├── layout/               # Elementos estructurales (Navbar, Sidebar, Footer)
+│   │   ├── common/               # Componentes transversales (Toast, RouteGuard)
+│   │   ├── anime/                # Modales y componentes específicos de series (AnimeDetailModal)
+│   │   └── admin/                # Formularios y modales de gestión (AnimeFormModal, GenerosPatchModal)
 │   ├── views/                    # Vistas principales de la SPA (rutas de la aplicación)
 │   │   ├── CatalogView.jsx       # Catálogo oficial de animes, filtros combinados y paginador
 │   │   ├── LibraryView.jsx       # Biblioteca personal, tabs por estado y botón +1 capítulo
@@ -118,7 +121,7 @@ frontend-grupo-LOTUS/
 │   │   └── NotFoundView.jsx      # Pantalla 404 para URLs no reconocidas
 │   ├── services/
 │   │   └── api.js                # Cliente HTTP centralizado (fetch, JWT Bearer y manejo de 401)
-│   ├── App.jsx                   # Componente raíz, orquestador de rutas, modal y estado global
+│   ├── App.jsx                   # Orquestador liviano de rutas, modal y estado global
 │   ├── main.jsx                  # Punto de entrada de React 18 (renderizado en #root)
 │   └── index.css                 # Importación de Tailwind CSS y tipografía Plus Jakarta Sans
 ├── index.html                    # Documento HTML base de la SPA (Single Page Application)
