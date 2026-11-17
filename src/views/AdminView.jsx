@@ -19,6 +19,8 @@ import {
   ArrowUpRight
 } from 'lucide-react';
 import { kirokuApi, generosService } from '../services/api';
+import AnimeFormModal from '../components/admin/AnimeFormModal';
+import GenerosPatchModal from '../components/admin/GenerosPatchModal';
 
 export default function AdminView({ onShowToast }) {
   const [activeTab, setActiveTab] = useState('catalogo'); // 'catalogo' | 'generos' | 'usuarios'
@@ -780,195 +782,30 @@ export default function AdminView({ onShowToast }) {
       )}
 
       {/* MODAL: AGREGAR GÉNEROS (PATCH) */}
-      {patchModalAnime && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm">
-          <div className="bg-[#11131f] border border-amber-400/40 rounded-2xl max-w-md w-full p-6 flex flex-col gap-4 shadow-2xl">
-            <div className="flex items-center justify-between">
-              <h3 className="text-base font-bold text-white">
-                Sumar géneros a "{patchModalAnime.titulo}"
-              </h3>
-              <button
-                onClick={() => setPatchModalAnime(null)}
-                className="text-slate-400 hover:text-white text-xs cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-
-            <p className="text-xs text-slate-400">
-              Elige los géneros que deseas anexar. Los géneros previos se conservarán.
-            </p>
-
-            <div className="p-3.5 rounded-xl bg-[#090a10] border border-[#1e2338] max-h-40 overflow-y-auto flex flex-wrap gap-1.5">
-              {generos.map((g) => {
-                const yaLoTiene = patchModalAnime.generos?.includes(g.nombre);
-                const isSelected = patchGenerosSeleccionados.includes(g.nombre);
-                return (
-                  <button
-                    key={g._id}
-                    disabled={yaLoTiene}
-                    type="button"
-                    onClick={() => {
-                      setPatchGenerosSeleccionados(prev =>
-                        prev.includes(g.nombre) ? prev.filter(x => x !== g.nombre) : [...prev, g.nombre]
-                      );
-                    }}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
-                      yaLoTiene
-                        ? 'bg-[#181a2b] text-slate-600 cursor-not-allowed'
-                        : isSelected
-                        ? 'bg-amber-400 text-slate-950 font-bold'
-                        : 'bg-[#181a2b] text-slate-300 hover:text-white'
-                    }`}
-                  >
-                    {yaLoTiene ? `✓ ${g.nombre}` : isSelected ? `+ ${g.nombre}` : g.nombre}
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="flex justify-end gap-2 pt-2">
-              <button
-                onClick={() => setPatchModalAnime(null)}
-                className="px-4 py-2 text-xs text-slate-400 hover:text-white cursor-pointer"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handlePatchGeneros}
-                disabled={patchGenerosSeleccionados.length === 0}
-                className="px-5 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs cursor-pointer disabled:opacity-40"
-              >
-                Guardar ({patchGenerosSeleccionados.length})
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <GenerosPatchModal
+        anime={patchModalAnime}
+        generos={generos}
+        selectedGeneros={patchGenerosSeleccionados}
+        onToggleGenero={(nombre) => {
+          setPatchGenerosSeleccionados(prev =>
+            prev.includes(nombre) ? prev.filter(x => x !== nombre) : [...prev, nombre]
+          );
+        }}
+        onClose={() => setPatchModalAnime(null)}
+        onSubmit={handlePatchGeneros}
+      />
 
       {/* MODAL: CREAR / EDITAR ANIME */}
-      {isAnimeModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm">
-          <div className="bg-[#11131f] border border-[#1e2338] rounded-2xl max-w-lg w-full p-6 flex flex-col gap-5 shadow-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between">
-              <h3 className="text-base font-bold text-white">
-                {editingAnimeId ? 'Editar Serie' : 'Nueva Serie en Catálogo'}
-              </h3>
-              <button
-                onClick={() => setIsAnimeModalOpen(false)}
-                className="text-slate-400 hover:text-white text-xs cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveAnime} className="flex flex-col gap-4">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-slate-300">Título</label>
-                <input
-                  type="text"
-                  required
-                  value={animeForm.titulo}
-                  onChange={(e) => setAnimeForm({ ...animeForm, titulo: e.target.value })}
-                  placeholder="Ej: Death Note"
-                  className="bg-[#090a10] border border-[#23273e] focus:border-purple-500 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none"
-                />
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-slate-300">
-                  Géneros ({animeForm.generos.length} seleccionados)
-                </label>
-                <div className="p-3 rounded-xl bg-[#090a10] border border-[#23273e] max-h-36 overflow-y-auto flex flex-wrap gap-1.5">
-                  {generos.map((g) => {
-                    const isSelected = animeForm.generos.includes(g.nombre);
-                    return (
-                      <button
-                        type="button"
-                        key={g._id}
-                        onClick={() => toggleGeneroSeleccionado(g.nombre)}
-                        className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-                          isSelected
-                            ? 'bg-purple-600 text-white font-bold'
-                            : 'bg-[#181a2b] text-slate-400 hover:text-white'
-                        }`}
-                      >
-                        {isSelected && '✓ '}
-                        {g.nombre}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-slate-300">Total Episodios</label>
-                  <input
-                    type="number"
-                    min="0"
-                    required
-                    value={animeForm.totalEpisodios}
-                    onChange={(e) => setAnimeForm({ ...animeForm, totalEpisodios: e.target.value })}
-                    className="bg-[#090a10] border border-[#23273e] rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-slate-300">Estado</label>
-                  <select
-                    value={animeForm.estadoEmision}
-                    onChange={(e) => setAnimeForm({ ...animeForm, estadoEmision: e.target.value })}
-                    className="bg-[#090a10] border border-[#23273e] rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none"
-                  >
-                    <option value="Finalizado">Finalizado</option>
-                    <option value="En emisión">En emisión</option>
-                    <option value="Por estrenar">Por estrenar</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-slate-300">URL de Portada</label>
-                <input
-                  type="url"
-                  required
-                  value={animeForm.imagenPortada}
-                  onChange={(e) => setAnimeForm({ ...animeForm, imagenPortada: e.target.value })}
-                  className="bg-[#090a10] border border-[#23273e] rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none"
-                />
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-slate-300">Sinopsis</label>
-                <textarea
-                  required
-                  rows="3"
-                  value={animeForm.sinopsis}
-                  onChange={(e) => setAnimeForm({ ...animeForm, sinopsis: e.target.value })}
-                  className="bg-[#090a10] border border-[#23273e] rounded-xl p-3 text-xs text-white focus:outline-none resize-none"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsAnimeModalOpen(false)}
-                  className="px-4 py-2 text-xs text-slate-400 hover:text-white cursor-pointer"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs cursor-pointer shadow-md"
-                >
-                  {editingAnimeId ? 'Guardar Cambios' : 'Crear Serie'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <AnimeFormModal
+        isOpen={isAnimeModalOpen}
+        isEditing={Boolean(editingAnimeId)}
+        animeForm={animeForm}
+        setAnimeForm={setAnimeForm}
+        generos={generos}
+        onToggleGenero={toggleGeneroSeleccionado}
+        onClose={() => setIsAnimeModalOpen(false)}
+        onSubmit={handleSaveAnime}
+      />
     </div>
   );
 }
